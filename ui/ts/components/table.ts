@@ -44,6 +44,11 @@ module Components {
        * of view() will be used to sort the column.
        */
       sortValue?: (r: T) => any;
+      /**
+       * rollup is a function that takes the table values and reduces them to
+       * a single value - typically average or sum.
+       */
+       rollup?: (Rows: )
     }
 
     /**

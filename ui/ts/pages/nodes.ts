@@ -68,6 +68,13 @@ module AdminViews {
             sortValue: (status: NodeStatus): number => status.stats.live_bytes,
           },
           {
+            title: "Intent Bytes",
+            view: (status: NodeStatus): string => Utils.Format.Bytes(status.stats.intent_bytes),
+            sortable: true,
+            sortValue: (status: NodeStatus): number => status.stats.intent_bytes,
+            rollup:
+          },
+          {
             title: "Logs",
             view: (status: NodeStatus): MithrilElement =>
               m("a", { href: "/logs/" + status.desc.node_id, config: m.route }, "Log"),
