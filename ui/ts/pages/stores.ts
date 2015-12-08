@@ -29,8 +29,16 @@ module AdminViews {
     import StoreStatus = Models.Proto.StoreStatus;
     let storeStatuses: Models.Status.Stores = new Models.Status.Stores();
 
+    function _nodeMetric(metric: string): string {
+      return "cr.node." + metric;
+    }
+
     function _storeMetric(metric: string): string {
       return "cr.store." + metric;
+    }
+
+    function _sysMetric(metric: string): string {
+      return "cr.node.sys." + metric;
     }
 
     function storeStatus(lastUpdate: moment): string {
@@ -98,7 +106,7 @@ module AdminViews {
             sortable: true,
             sortValue: (status: StoreStatus): number => status.stats.live_bytes,
             rollup: function(rows: StoreStatus[]): string {
-              let total: number =_.reduce(rows, function(memo: sum, row: StoreStatus) {
+              let total: {count: number; bytes:number;} =_.reduce(rows, function(memo: {count: number; bytes:number;}, row: StoreStatus) {
                 memo.count += row.stats.live_count;
                 memo.bytes += row.stats.live_bytes;
                 return memo;
@@ -114,7 +122,7 @@ module AdminViews {
             sortable: true,
             sortValue: (status: StoreStatus): number => status.stats.key_bytes,
             rollup: function(rows: StoreStatus[]): string {
-              let total: number =_.reduce(rows, function(memo: sum, row: StoreStatus) {
+              let total: {count: number; bytes:number;} =_.reduce(rows, function(memo: {count: number; bytes:number;}, row: StoreStatus) {
                 memo.count += row.stats.key_count;
                 memo.bytes += row.stats.key_bytes;
                 return memo;
@@ -130,7 +138,7 @@ module AdminViews {
             sortable: true,
             sortValue: (status: StoreStatus): number => status.stats.val_bytes,
             rollup: function(rows: StoreStatus[]): string {
-              let total: number =_.reduce(rows, function(memo: sum, row: StoreStatus) {
+              let total: {count: number; bytes:number;} =_.reduce(rows, function(memo: {count: number; bytes:number;}, row: StoreStatus) {
                 memo.count += row.stats.val_count;
                 memo.bytes += row.stats.val_bytes;
                 return memo;
@@ -146,7 +154,7 @@ module AdminViews {
             sortable: true,
             sortValue: (status: StoreStatus): number => status.stats.intent_bytes,
             rollup: function(rows: StoreStatus[]): string {
-              let total: number =_.reduce(rows, function(memo: sum, row: StoreStatus) {
+              let total: {count: number; bytes:number;} =_.reduce(rows, function(memo: {count: number; bytes:number;}, row: StoreStatus) {
                 memo.count += row.stats.intent_count;
                 memo.bytes += row.stats.intent_bytes;
                 return memo;
@@ -162,7 +170,7 @@ module AdminViews {
             sortable: true,
             sortValue: (status: StoreStatus): number => status.stats.sys_bytes,
             rollup: function(rows: StoreStatus[]): string {
-              let total: number =_.reduce(rows, function(memo: sum, row: StoreStatus) {
+              let total: {count: number; bytes:number;} =_.reduce(rows, function(memo: {count: number; bytes:number;}, row: StoreStatus) {
                 memo.count += row.stats.sys_count;
                 memo.bytes += row.stats.sys_bytes;
                 return memo;
@@ -174,10 +182,67 @@ module AdminViews {
         ];
 
         private static _queryEveryMS: number = 10000;
+        public sources: string[] = [];
         public columns: Utils.Property<Table.TableColumn<StoreStatus>[]> = Utils.Prop(Controller.comparisonColumns);
+        exec: Metrics.Executor;
+        axes: Metrics.Axis[] = [];
+        private _query: Metrics.Query;
         private _interval: number;
+        private _storeId: string;
 
         public constructor(nodeId?: string) {
+          this._query = Metrics.NewQuery();
+          this._addChart(
+            Metrics.NewAxis(
+              Metrics.Select.Avg(_storeMetric("keycount"))
+                .sources(this.sources)
+                .title("Key Count")
+              )
+              .label("Count")
+            );
+          this._addChart(
+            Metrics.NewAxis(
+              Metrics.Select.Avg(_storeMetric("livecount"))
+                .sources(this.sources)
+                .title("Live Value Count")
+              )
+              .label("Count")
+            );
+          this._addChart(
+            Metrics.NewAxis(
+              Metrics.Select.Avg(_storeMetric("valcount"))
+                .sources(this.sources)
+                .title("Total Value Count")
+              )
+              .label("Count")
+            );
+          this._addChart(
+            Metrics.NewAxis(
+              Metrics.Select.Avg(_storeMetric("intentcount"))
+                .sources(this.sources)
+                .title("Intent Count")
+              )
+              .label("Count")
+            );
+          this._addChart(
+            Metrics.NewAxis(
+              Metrics.Select.Avg(_storeMetric("ranges"))
+                .sources(this.sources)
+                .title("Range Count")
+              )
+              .label("Count")
+            );
+          this._addChart(
+            Metrics.NewAxis(
+              Metrics.Select.Avg(_storeMetric("livebytes"))
+                .sources(this.sources)
+                .title("Live Bytes")
+              )
+              .label("Bytes")
+              .format(Utils.Format.Bytes)
+            );
+
+          this.exec = new Metrics.Executor(this._query);
           this._refresh();
           this._interval = window.setInterval(() => this._refresh(), Controller._queryEveryMS);
         }
@@ -238,8 +303,20 @@ module AdminViews {
           return m(".primary-stats");
         }
 
+        public RenderGraphs(): MithrilElement {
+          return m(".charts", this.axes.map((axis: Metrics.Axis) => {
+            return m("", { style: "float:left" }, Components.Metrics.LineGraph.create(this.exec, axis));
+          }));
+        }
+
         private _refresh(): void {
+          this.exec.refresh();
           storeStatuses.refresh();
+        }
+
+        private _addChart(axis: Metrics.Axis): void {
+          axis.selectors().forEach((s: Metrics.Select.Selector) => this._query.selectors().push(s));
+          this.axes.push(axis);
         }
       }
 
@@ -248,13 +325,17 @@ module AdminViews {
       }
 
       export function view(ctrl: Controller): MithrilElement {
+        ctrl.sources = _.map(storeStatuses.allStatuses(),
+          function(v): string {
+            return v.desc.node.node_id.toString();
+          });
         let comparisonData: Table.TableData<StoreStatus> = {
           columns: ctrl.columns,
           rows: storeStatuses.allStatuses,
         };
         return m(".page", [
           m.component(Topbar, {title: "Stores"}),
-          m(".section", ctrl.RenderPrimaryStats()),
+          m(".section", ctrl.RenderGraphs()),
           m(".section.table", m(".stats-table", Components.Table.create(comparisonData))),
         ]);
       }

@@ -76,6 +76,22 @@ module AdminViews {
               m("a", {href: "/nodes/" + status.desc.node_id, config: m.route}, status.desc.node_id.toString()),
             sortable: true,
             sortValue: (status: NodeStatus): number => status.desc.node_id,
+            rollup: function(rows: NodeStatus[]): string {
+              interface statusTotals {
+                red?: number;
+                yellow?: number;
+                green?: number;
+              }
+              let statuses: statusTotals = _.countBy(rows, (row: NodeStatus) => nodeStatus(moment(Utils.Convert.NanoToMilli(row.stats.last_update_nanos))));
+
+              return m("node-counts", [
+                m("span.green", statuses.green || 0),
+                m("span", "/"),
+                m("span.yellow", statuses.yellow || 0),
+                m("span", "/"),
+                m("span.red", statuses.red || 0),
+
+              ]);
           },
           {
             title: "Address",
@@ -97,7 +113,7 @@ module AdminViews {
             sortable: true,
             sortValue: (status: NodeStatus): number => status.stats.live_bytes,
             rollup: function(rows: NodeStatus[]): string {
-              let total: number =_.reduce(rows, function(memo: sum, row: NodeStatus) {
+              let total: {count: number; bytes:number;} =_.reduce(rows, function(memo: {count: number; bytes:number;}, row: NodeStatus) {
                 memo.count += row.stats.live_count;
                 memo.bytes += row.stats.live_bytes;
                 return memo;
@@ -113,7 +129,7 @@ module AdminViews {
             sortable: true,
             sortValue: (status: NodeStatus): number => status.stats.key_bytes,
             rollup: function(rows: NodeStatus[]): string {
-              let total: number =_.reduce(rows, function(memo: sum, row: NodeStatus) {
+              let total: {count: number; bytes:number;} =_.reduce(rows, function(memo: {count: number; bytes:number;}, row: NodeStatus) {
                 memo.count += row.stats.key_count;
                 memo.bytes += row.stats.key_bytes;
                 return memo;
@@ -129,7 +145,7 @@ module AdminViews {
             sortable: true,
             sortValue: (status: NodeStatus): number => status.stats.val_bytes,
             rollup: function(rows: NodeStatus[]): string {
-              let total: number =_.reduce(rows, function(memo: sum, row: NodeStatus) {
+              let total: {count: number; bytes:number;} =_.reduce(rows, function(memo: {count: number; bytes:number;}, row: NodeStatus) {
                 memo.count += row.stats.val_count;
                 memo.bytes += row.stats.val_bytes;
                 return memo;
@@ -145,7 +161,7 @@ module AdminViews {
             sortable: true,
             sortValue: (status: NodeStatus): number => status.stats.intent_bytes,
             rollup: function(rows: NodeStatus[]): string {
-              let total: number =_.reduce(rows, function(memo: sum, row: NodeStatus) {
+              let total: {count: number; bytes:number;} =_.reduce(rows, function(memo: {count: number; bytes:number;}, row: NodeStatus) {
                 memo.count += row.stats.intent_count;
                 memo.bytes += row.stats.intent_bytes;
                 return memo;
@@ -161,7 +177,7 @@ module AdminViews {
             sortable: true,
             sortValue: (status: NodeStatus): number => status.stats.sys_bytes,
             rollup: function(rows: NodeStatus[]): string {
-              let total: number =_.reduce(rows, function(memo: sum, row: NodeStatus) {
+              let total: {count: number; bytes:number;} =_.reduce(rows, function(memo: {count: number; bytes:number;}, row: NodeStatus) {
                 memo.count += row.stats.sys_count;
                 memo.bytes += row.stats.sys_bytes;
                 return memo;
@@ -169,6 +185,48 @@ module AdminViews {
               return total.count + " (" + Utils.Format.Bytes(total.bytes) +")";
             },
             section: "storage",
+          },
+          {
+            title: "Leader Ranges",
+            view: (status: NodeStatus): string => status.leader_range_count,
+            sortable: true,
+            sortValue: (status: NodeStatus): number => status.leader_range_count,
+            rollup: function(rows: NodeStatus[]): string {
+              let total: number =_.reduce(rows, function(memo: number, row: NodeStatus) {
+                memo += row.leader_range_count;
+                return memo;
+              }, 0);
+              return total
+            },
+            section: "ranges",
+          },
+          {
+            title: "Replicated Ranges",
+            view: (status: NodeStatus): string => status.replicated_range_count,
+            sortable: true,
+            sortValue: (status: NodeStatus): number => status.replicated_range_count,
+            rollup: function(rows: NodeStatus[]): string {
+              let total: number =_.reduce(rows, function(memo: number, row: NodeStatus) {
+                memo += row.replicated_range_count;
+                return memo;
+              }, 0);
+              return total
+            },
+            section: "ranges",
+          },
+          {
+            title: "Available Ranges",
+            view: (status: NodeStatus): string => status.available_range_count,
+            sortable: true,
+            sortValue: (status: NodeStatus): number => status.available_range_count,
+            rollup: function(rows: NodeStatus[]): string {
+              let total: number =_.reduce(rows, function(memo: number, row: NodeStatus) {
+                memo += row.available_range_count;
+                return memo;
+              }, 0);
+              return total
+            },
+            section: "ranges",
           },
           {
             title: "Logs",
@@ -185,7 +243,6 @@ module AdminViews {
         axes: Metrics.Axis[] = [];
         private _interval: number;
         private _query: Metrics.Query;
-
 
         public constructor(nodeId?: string) {
           this._query = Metrics.NewQuery();
