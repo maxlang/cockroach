@@ -7,6 +7,7 @@
 /// <reference path="../components/topbar.ts" />
 /// <reference path="../components/visualizations/visualizations.ts" />
 /// <reference path="../util/format.ts" />
+/// <reference path="../../typings/moment/moment.d.ts" />
 
 // Author: Bram Gruneir (bram+code@cockroachlabs.com)
 
@@ -32,6 +33,18 @@ module AdminViews {
       return "cr.store." + metric;
     }
 
+    function storeStatus(lastUpdate: moment): string {
+      let _15s: moment = moment().subtract(15, "seconds");
+      let _1min: moment = moment().subtract(1, "minute");
+      if (lastUpdate.isBefore(_1min)) {
+        return "red";
+      } else if (lastUpdate.isBefore(_15s)) {
+        return "yellow";
+      } else {
+        return "green";
+      }
+    }
+
     /**
      * StoresPage show a list of all the available nodes.
      */
@@ -40,6 +53,15 @@ module AdminViews {
       import MithrilComponent = _mithril.MithrilComponent;
       class Controller {
         private static comparisonColumns: Table.TableColumn<StoreStatus>[] = [
+          {
+            title: "",
+            view: (status: StoreStatus): string => {
+              let lastUpdate: moment = moment(Utils.Convert.NanoToMilli(status.stats.last_update_nanos));
+              let status: string = storeStatus(lastUpdate);
+              return m("div.status.icon-cockroach-15." + status);
+            },
+            sortable: true,
+          },
           {
             title: "Store ID",
             view: (status: StoreStatus): MithrilElement => {
@@ -70,10 +92,84 @@ module AdminViews {
             sortable: true,
           },
           {
-            title: "Live Bytes",
-            view: (status: StoreStatus): string => Utils.Format.Bytes(status.stats.live_bytes),
+            title: "Live Count (Bytes)",
+            view: (status: StoreStatus): string =>
+              status.stats.live_count + " (" + Utils.Format.Bytes(status.stats.live_bytes) + ")",
             sortable: true,
             sortValue: (status: StoreStatus): number => status.stats.live_bytes,
+            rollup: function(rows: StoreStatus[]): string {
+              let total: number =_.reduce(rows, function(memo: sum, row: StoreStatus) {
+                memo.count += row.stats.live_count;
+                memo.bytes += row.stats.live_bytes;
+                return memo;
+              }, {count: 0, bytes: 0});
+              return total.count + " (" + Utils.Format.Bytes(total.bytes) +")";
+            },
+            section: "storage",
+          },
+          {
+            title: "Key Count (Bytes)",
+            view: (status: StoreStatus): string =>
+              status.stats.key_count + " (" + Utils.Format.Bytes(status.stats.key_bytes) + ")",
+            sortable: true,
+            sortValue: (status: StoreStatus): number => status.stats.key_bytes,
+            rollup: function(rows: StoreStatus[]): string {
+              let total: number =_.reduce(rows, function(memo: sum, row: StoreStatus) {
+                memo.count += row.stats.key_count;
+                memo.bytes += row.stats.key_bytes;
+                return memo;
+              }, {count: 0, bytes: 0});
+              return total.count + " (" + Utils.Format.Bytes(total.bytes) +")";
+            },
+            section: "storage",
+          },
+          {
+            title: "Value Count (Bytes)",
+            view: (status: StoreStatus): string =>
+              status.stats.val_count + " (" + Utils.Format.Bytes(status.stats.val_bytes) + ")",
+            sortable: true,
+            sortValue: (status: StoreStatus): number => status.stats.val_bytes,
+            rollup: function(rows: StoreStatus[]): string {
+              let total: number =_.reduce(rows, function(memo: sum, row: StoreStatus) {
+                memo.count += row.stats.val_count;
+                memo.bytes += row.stats.val_bytes;
+                return memo;
+              }, {count: 0, bytes: 0});
+              return total.count + " (" + Utils.Format.Bytes(total.bytes) +")";
+            },
+            section: "storage",
+          },
+          {
+            title: "Intent Count (Bytes)",
+            view: (status: StoreStatus): string =>
+              status.stats.intent_count + " (" + Utils.Format.Bytes(status.stats.intent_bytes) + ")",
+            sortable: true,
+            sortValue: (status: StoreStatus): number => status.stats.intent_bytes,
+            rollup: function(rows: StoreStatus[]): string {
+              let total: number =_.reduce(rows, function(memo: sum, row: StoreStatus) {
+                memo.count += row.stats.intent_count;
+                memo.bytes += row.stats.intent_bytes;
+                return memo;
+              }, {count: 0, bytes: 0});
+              return total.count + " (" + Utils.Format.Bytes(total.bytes) +")";
+            },
+            section: "storage",
+          },
+          {
+            title: "System Count (Bytes)",
+            view: (status: StoreStatus): string =>
+              status.stats.sys_count + " (" + Utils.Format.Bytes(status.stats.sys_bytes) + ")",
+            sortable: true,
+            sortValue: (status: StoreStatus): number => status.stats.sys_bytes,
+            rollup: function(rows: StoreStatus[]): string {
+              let total: number =_.reduce(rows, function(memo: sum, row: StoreStatus) {
+                memo.count += row.stats.sys_count;
+                memo.bytes += row.stats.sys_bytes;
+                return memo;
+              }, {count: 0, bytes: 0});
+              return total.count + " (" + Utils.Format.Bytes(total.bytes) +")";
+            },
+            section: "storage",
           },
         ];
 

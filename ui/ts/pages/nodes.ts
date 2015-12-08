@@ -34,6 +34,26 @@ module AdminViews {
       return "cr.node." + metric;
     }
 
+    function _storeMetric(metric: string): string {
+      return "cr.store." + metric;
+    }
+
+    function _sysMetric(metric: string): string {
+      return "cr.node.sys." + metric;
+    }
+
+    function nodeStatus(lastUpdate: moment): string {
+      let _15s: moment = moment().subtract(15, "seconds");
+      let _1min: moment = moment().subtract(1, "minute");
+      if (lastUpdate.isBefore(_1min)) {
+        return "red";
+      } else if (lastUpdate.isBefore(_15s)) {
+        return "yellow";
+      } else {
+        return "green";
+      }
+    }
+
     /**
      * NodesPage show a list of all the available nodes.
      */
@@ -41,6 +61,15 @@ module AdminViews {
       import MithrilComponent = _mithril.MithrilComponent;
       class Controller {
         private static comparisonColumns: Table.TableColumn<NodeStatus>[] = [
+          {
+            title: "",
+            view: (status: NodeStatus): string => {
+              let lastUpdate: moment = moment(Utils.Convert.NanoToMilli(status.stats.last_update_nanos));
+              let status: string = nodeStatus(lastUpdate);
+              return m("div.status.icon-cockroach-15." + status);
+            },
+            sortable: true,
+          },
           {
             title: "Node ID",
             view: (status: NodeStatus): MithrilElement =>
@@ -62,20 +91,84 @@ module AdminViews {
             sortable: true,
           },
           {
-            title: "Live Bytes",
-            view: (status: NodeStatus): string => Utils.Format.Bytes(status.stats.live_bytes),
+            title: "Live Count (Bytes)",
+            view: (status: NodeStatus): string =>
+              status.stats.live_count + " (" + Utils.Format.Bytes(status.stats.live_bytes) + ")",
             sortable: true,
             sortValue: (status: NodeStatus): number => status.stats.live_bytes,
+            rollup: function(rows: NodeStatus[]): string {
+              let total: number =_.reduce(rows, function(memo: sum, row: NodeStatus) {
+                memo.count += row.stats.live_count;
+                memo.bytes += row.stats.live_bytes;
+                return memo;
+              }, {count: 0, bytes: 0});
+              return total.count + " (" + Utils.Format.Bytes(total.bytes) +")";
+            },
+            section: "storage",
           },
           {
-            title: "Intent Bytes",
-            view: (status: NodeStatus): string => Utils.Format.Bytes(status.stats.intent_bytes),
+            title: "Key Count (Bytes)",
+            view: (status: NodeStatus): string =>
+              status.stats.key_count + " (" + Utils.Format.Bytes(status.stats.key_bytes) + ")",
+            sortable: true,
+            sortValue: (status: NodeStatus): number => status.stats.key_bytes,
+            rollup: function(rows: NodeStatus[]): string {
+              let total: number =_.reduce(rows, function(memo: sum, row: NodeStatus) {
+                memo.count += row.stats.key_count;
+                memo.bytes += row.stats.key_bytes;
+                return memo;
+              }, {count: 0, bytes: 0});
+              return total.count + " (" + Utils.Format.Bytes(total.bytes) +")";
+            },
+            section: "storage",
+          },
+          {
+            title: "Value Count (Bytes)",
+            view: (status: NodeStatus): string =>
+              status.stats.val_count + " (" + Utils.Format.Bytes(status.stats.val_bytes) + ")",
+            sortable: true,
+            sortValue: (status: NodeStatus): number => status.stats.val_bytes,
+            rollup: function(rows: NodeStatus[]): string {
+              let total: number =_.reduce(rows, function(memo: sum, row: NodeStatus) {
+                memo.count += row.stats.val_count;
+                memo.bytes += row.stats.val_bytes;
+                return memo;
+              }, {count: 0, bytes: 0});
+              return total.count + " (" + Utils.Format.Bytes(total.bytes) +")";
+            },
+            section: "storage",
+          },
+          {
+            title: "Intent Count (Bytes)",
+            view: (status: NodeStatus): string =>
+              status.stats.intent_count + " (" + Utils.Format.Bytes(status.stats.intent_bytes) + ")",
             sortable: true,
             sortValue: (status: NodeStatus): number => status.stats.intent_bytes,
             rollup: function(rows: NodeStatus[]): string {
-              return "rollup";
+              let total: number =_.reduce(rows, function(memo: sum, row: NodeStatus) {
+                memo.count += row.stats.intent_count;
+                memo.bytes += row.stats.intent_bytes;
+                return memo;
+              }, {count: 0, bytes: 0});
+              return total.count + " (" + Utils.Format.Bytes(total.bytes) +")";
             },
-            section: "test",
+            section: "storage",
+          },
+          {
+            title: "System Count (Bytes)",
+            view: (status: NodeStatus): string =>
+              status.stats.sys_count + " (" + Utils.Format.Bytes(status.stats.sys_bytes) + ")",
+            sortable: true,
+            sortValue: (status: NodeStatus): number => status.stats.sys_bytes,
+            rollup: function(rows: NodeStatus[]): string {
+              let total: number =_.reduce(rows, function(memo: sum, row: NodeStatus) {
+                memo.count += row.stats.sys_count;
+                memo.bytes += row.stats.sys_bytes;
+                return memo;
+              }, {count: 0, bytes: 0});
+              return total.count + " (" + Utils.Format.Bytes(total.bytes) +")";
+            },
+            section: "storage",
           },
           {
             title: "Logs",
@@ -87,9 +180,44 @@ module AdminViews {
         private static _queryEveryMS: number = 10000;
 
         public columns: Utils.Property<Table.TableColumn<NodeStatus>[]> = Utils.Prop(Controller.comparisonColumns);
+        public sources: string[] = [];
+        exec: Metrics.Executor;
+        axes: Metrics.Axis[] = [];
         private _interval: number;
+        private _query: Metrics.Query;
+
 
         public constructor(nodeId?: string) {
+          this._query = Metrics.NewQuery();
+          this._addChart(
+            Metrics.NewAxis(
+              Metrics.Select.Avg(_storeMetric("ranges.available"))
+                .sources(this.sources)
+                .title("% Available Ranges")
+              ));
+
+          this._addChart(
+            Metrics.NewAxis(
+              Metrics.Select.AvgRate(_nodeMetric("calls.error"))
+                .sources(this.sources)
+                .title("Error Calls")
+              ));
+
+          this._addChart(
+            Metrics.NewAxis(
+              Metrics.Select.Avg(_storeMetric("livebytes"))
+                .sources(this.sources) //TODO: store sources vs node sources
+                .title("Live Bytes")
+              ));
+
+          this._addChart(
+            Metrics.NewAxis(
+              Metrics.Select.Avg(_sysMetric("cpu.user.percent"))
+                .sources(this.sources) //TODO: store sources vs node sources
+                .title("CPU User %")
+              ));
+
+          this.exec = new Metrics.Executor(this._query);
           this._refresh();
           this._interval = window.setInterval(() => this._refresh(), Controller._queryEveryMS);
         }
@@ -150,8 +278,20 @@ module AdminViews {
           return m(".primary-stats");
         }
 
+        public RenderGraphs(): MithrilElement {
+          return m(".charts", this.axes.map((axis: Metrics.Axis) => {
+            return m("", { style: "float:left" }, Components.Metrics.LineGraph.create(this.exec, axis));
+          }));
+        }
+
         private _refresh(): void {
+          this.exec.refresh();
           nodeStatuses.refresh();
+        }
+
+        private _addChart(axis: Metrics.Axis): void {
+          axis.selectors().forEach((s: Metrics.Select.Selector) => this._query.selectors().push(s));
+          this.axes.push(axis);
         }
       }
 
@@ -160,13 +300,21 @@ module AdminViews {
       }
 
       export function view(ctrl: Controller): MithrilElement {
+        // set
+        ctrl.sources = _.map(nodeStatuses.allStatuses(),
+          function(v): string {
+            return v.desc.node_id.toString();
+          });
         let comparisonData: Table.TableData<NodeStatus> = {
           columns: ctrl.columns,
           rows: nodeStatuses.allStatuses,
         };
         return m(".page", [
           m.component(Components.Topbar, {title: "Nodes"}),
-          m(".section", ctrl.RenderPrimaryStats()),
+          m(".section", [
+            m(".subtitle", m("h1", "Node Overview"))
+            ctrl.RenderGraphs()
+          ]),
           m(".section.table", m(".stats-table", Components.Table.create(comparisonData))),
         ]);
       }
