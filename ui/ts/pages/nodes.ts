@@ -72,7 +72,10 @@ module AdminViews {
             view: (status: NodeStatus): string => Utils.Format.Bytes(status.stats.intent_bytes),
             sortable: true,
             sortValue: (status: NodeStatus): number => status.stats.intent_bytes,
-            rollup:
+            rollup: function(rows: NodeStatus[]): string {
+              return "rollup";
+            },
+            section: "test",
           },
           {
             title: "Logs",

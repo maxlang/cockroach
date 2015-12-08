@@ -48,7 +48,12 @@ module Components {
        * rollup is a function that takes the table values and reduces them to
        * a single value - typically average or sum.
        */
-       rollup?: (Rows: )
+       rollup?: (rows: T[]) => string;
+       /**
+        * section is a string that indicates the column section this column
+        * is part of
+        */
+       section?: string;
     }
 
     /**
@@ -69,6 +74,11 @@ module Components {
        */
       rows: Utils.ReadOnlyProperty<T[]>;
     }
+
+    interface SectionWidth {
+      name: string;
+      width: number;
+    };
 
     class Controller<T> {
       data: TableData<T>;
@@ -128,6 +138,43 @@ module Components {
       }
 
       /**
+       * RenderSectionHeaders returns a mithril element which contains the
+       * header section row for the table.
+       */
+      RenderSectionHeaders(): MithrilElement {
+        let cols = this.data.columns();
+
+        let sections: SectionWidth[] = _.reduce(
+            cols,
+            function(memo: SectionWidth[], col: TableColumn<T>): SectionWidth[] {
+              let lastSection = _.last(memo);
+              let name: string = col.section || null;
+              if (!lastSection || (lastSection.name !== name)) {
+                memo.push({
+                  name: name,
+                  width: 1,
+                });
+              } else {
+                lastSection.width += 1;
+              }
+              return memo;
+            },
+            []
+          );
+        if (sections.length === 1 && !sections[0].name ) {
+          return null;
+        } else {
+          let renderedSections = sections.map((section: SectionWidth) =>
+            m(
+              "th",
+              {colspan: section.width, class: (section.name ? "header-section" : "") },
+              section.name
+            ));
+          return m("tr", {class: "header-section"}, renderedSections);
+        }
+      }
+
+      /**
        * RenderHeaders returns a mithril element which contains the header row
        * for the table.
        */
@@ -170,7 +217,7 @@ module Components {
 
     export function view<T>(ctrl: Controller<T>): MithrilElement {
       return m("table", [
-        m("thead", ctrl.RenderHeaders()),
+        m("thead", [ctrl.RenderSectionHeaders(), ctrl.RenderHeaders()]),
         m("tbody", ctrl.RenderRows()),
       ]);
     }

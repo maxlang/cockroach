@@ -28,7 +28,7 @@ $stats-table-th--bg     = white
 $stats-table-tr--bg     = white
 $stats-table-tr--bg-alt = $secondary-gray-7
 
-// ---- Data table ---- 
+// ---- Data table ----
 .stats-table, .sql-table
   color -color('dark')
   table
@@ -36,12 +36,14 @@ $stats-table-tr--bg-alt = $secondary-gray-7
     margin-bottom 2rem
 
   thead
-    border $stats-table-cell--border
-    border-left none
-
     tr
-      height 71px
+      border $stats-table-cell--border
+      border-left none
+      height 30px
+      max-height 30px
       vertical-align top
+      &.header-section
+        height 30px
 
   tbody tr
       height 45px
@@ -59,6 +61,15 @@ $stats-table-tr--bg-alt = $secondary-gray-7
     font-weight normal
     text-align left
     background-color $stats-table-th--bg
+    white-space nowrap
+    &.header-section
+      font-size 12px
+      font-family Lato-Medium
+      letter-spacing 2px
+      text-transform uppercase
+      color $secondary-light-gray
+      padding 10px 20px
+
     &.sorted
       &:after
         content "▼"
