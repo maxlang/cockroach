@@ -4,16 +4,18 @@
 /// <reference path="pages/navigation.ts" />
 /// <reference path="pages/graph.ts" />
 /// <reference path="pages/log.ts" />
+/// <reference path="pages/cluster.ts" />
 /// <reference path="pages/nodes.ts" />
 /// <reference path="pages/stores.ts" />
 /// <reference path="pages/sql.ts" />
+/// <reference path="pages/settings.ts" />
 
 // Author: Bram Gruneir (bram+code@cockroachlabs.com)
 
 m.mount(document.getElementById("header"), AdminViews.SubModules.TitleBar);
 
 m.route.mode = "hash";
-m.route(document.getElementById("root"), "/nodes", {
+m.route(document.getElementById("root"), "/cluster", {
   "/graph": AdminViews.Graph.Page,
   "/logs": AdminViews.Log.Page,
   "/logs/:node_id": AdminViews.Log.Page,
@@ -30,4 +32,6 @@ m.route(document.getElementById("root"), "/nodes", {
   "/store/:store_id/:detail": AdminViews.Stores.StorePage,
   "/stores/:store_id/:detail": AdminViews.Stores.StorePage,
   "/sql": AdminViews.SQL.Page,
+  "/settings/:detail": AdminViews.Settings.Page,
+  "/cluster": AdminViews.Cluster.Page,
 });

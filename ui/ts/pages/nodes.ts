@@ -1,5 +1,6 @@
 // source: pages/nodes.ts
 /// <reference path="../../bower_components/mithriljs/mithril.d.ts" />
+
 /// <reference path="../../typings/lodash/lodash.d.ts"/>
 /// <reference path="../models/status.ts" />
 /// <reference path="../components/metrics.ts" />
@@ -72,7 +73,6 @@ module AdminViews {
 
       class Controller {
         private static _queryEveryMS: number = 10000;
-
         private static comparisonColumns: Table.TableColumn<NodeStatus>[] = [
           {
             title: "",
@@ -175,14 +175,14 @@ module AdminViews {
               Metrics.Select.Avg(_storeMetric("ranges.available"))
                 .sources(this.sources)
                 .title("Available Ranges")
-              ).format(d3.format("0")));
+              ).format(d3.format("d")));
 
           this._addChart(
             Metrics.NewAxis(
-              Metrics.Select.AvgRate(_nodeMetric("exec.error.count"))
+              Metrics.Select.AvgRate(_nodeMetric("exec.error-count"))
                 .sources(this.sources)
                 .title("Error Calls")
-              ));
+              ).format(d3.format("d")));
 
           this._addChart(
             Metrics.NewAxis(
@@ -196,7 +196,7 @@ module AdminViews {
               Metrics.Select.Avg(_sysMetric("cpu.user.percent"))
                 .sources(this.sources) // TODO: store sources vs node sources
                 .title("CPU User %")
-              ).format(d3.format("%")));
+              ).format(d3.format(".2%")));
 
           this.exec = new Metrics.Executor(this._query);
           this._refresh();
@@ -261,7 +261,7 @@ module AdminViews {
 
         public RenderGraphs(): MithrilElement {
           return m(".charts", this.axes.map((axis: Metrics.Axis) => {
-            return m("", { style: "float:left" }, Components.Metrics.LineGraph.create(this.exec, axis));
+            return m("", <_mithril.MithrilAttributes>{ style: "float:left" }, Components.Metrics.LineGraph.create(this.exec, axis));
           }));
         }
 
@@ -343,14 +343,14 @@ module AdminViews {
           this._query = Metrics.NewQuery();
           this._addChart(
             Metrics.NewAxis(
-              Metrics.Select.AvgRate(_nodeMetric("exec.success.count"))
+              Metrics.Select.AvgRate(_nodeMetric("exec.success-count"))
                 .sources([nodeId])
                 .title("Successful Calls")
               )
               .label("Count / 10 sec."));
           this._addChart(
             Metrics.NewAxis(
-              Metrics.Select.AvgRate(_nodeMetric("exec.error.count"))
+              Metrics.Select.AvgRate(_nodeMetric("exec.error-count"))
                 .sources([nodeId])
                 .title("Error Calls")
               )
@@ -400,7 +400,7 @@ module AdminViews {
 
         public RenderGraphs(): MithrilElement {
           return m(".charts", this.axes.map((axis: Metrics.Axis) => {
-            return m("", { style: "float:left" }, [
+            return m("", <_mithril.MithrilAttributes>{ style: "float:left" }, [
               m("h4", axis.title()),
               Components.Metrics.LineGraph.create(this.exec, axis),
             ]);

@@ -19,10 +19,14 @@ module Visualizations {
     data: NumberVisualizationData;
   }
 
-  export module NumberVisualization {
-    export function controller(): void {}
+  class Controller {}
 
-    export function view(ctrl: any, info: NumberVisualizationConfig): MithrilVirtualElement {
+  export module NumberVisualization {
+    export function controller(): Controller {
+      return new Controller();
+    }
+
+    export function view(ctrl: Controller, info: NumberVisualizationConfig): MithrilVirtualElement {
       let formatFn: (n: number) => string = info.formatFn || d3.format(info.format || ".3s");
 
       return m(
