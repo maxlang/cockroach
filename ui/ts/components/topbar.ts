@@ -1,3 +1,7 @@
+// source: components/health.ts
+
+/// <reference path="./health.ts" />
+
 // Author: Max Lang (max@cockroachlabs.com)
 
 module Components {
@@ -7,15 +11,18 @@ module Components {
 
   export module Topbar {
     export function controller(): void {}
-    export function view(ctrl: any, args: {title: string; updated: number; }): MithrilVirtualElement {
+    export function view(ctrl: any, args: {title?: string; updated: number; titleImage?: MithrilVirtualElement; }): MithrilVirtualElement {
       let updatedStr: string = "-";
       if (args.updated !== 0 && args.updated !== -Infinity) {
         updatedStr = Utils.Format.Date(new Date(Utils.Convert.NanoToMilli(args.updated)));
       }
 
       return m(".topbar", [
-        m("h2", args.title),
-        m(".last-updated", [m("strong", "Updated: "), updatedStr]),
+        (args.title && m("h2", args.title) || (args.titleImage)),
+        m(".info-container", [
+          m(".health", [m("strong", "health:"), m.component(Components.Health, {})]),
+          m(".last-updated", [ m("strong", "Updated: "), updatedStr ]),
+        ]),
       ]);
     }
   }
