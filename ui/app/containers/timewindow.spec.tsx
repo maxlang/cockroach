@@ -7,15 +7,16 @@ import _ from "lodash";
 
 import { TimeWindowManagerUnconnected as TimeWindowManager } from "./timewindow";
 import * as timewindow from "../redux/timewindow";
+import { TimeWindowState } from "../redux/state";
 
 describe("<TimeWindowManager>", function() {
   let spy: sinon.SinonSpy;
-  let state: timewindow.TimeWindowState;
+  let state: TimeWindowState;
   let now = () => moment("11-12-1955 10:04PM -0800", "MM-DD-YYYY hh:mma Z");
 
   beforeEach(function() {
     spy = sinon.spy();
-    state = new timewindow.TimeWindowState();
+    state = new TimeWindowState(timewindow.availableTimeScales["10 min"]);
   });
 
   let getManager = () => shallow(<TimeWindowManager timeWindow={_.clone(state)}

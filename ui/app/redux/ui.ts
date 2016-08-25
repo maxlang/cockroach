@@ -5,16 +5,13 @@
 
 import * as _ from "lodash";
 import { Action, PayloadAction } from "../interfaces/action";
+import { UISettingsDict } from "./state";
 
 const SET_UI_VALUE = "cockroachui/ui/SET_UI_VALUE";
 
 export class UISetting {
   key: string;
   value: any;
-}
-
-export class UISettingsDict {
-  [key: string]: any;
 }
 
 export default function reducer(state: UISettingsDict, action: Action): UISettingsDict {

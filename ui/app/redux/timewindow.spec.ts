@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import reducer from "./timewindow";
 import  * as timewindow from "./timewindow";
+import { TimeWindowState } from "./state";
 import moment from "moment";
 
 describe("time window reducer", function() {
@@ -40,10 +41,10 @@ describe("time window reducer", function() {
     it("should have the correct default value.", () => {
       assert.deepEqual(
         reducer(undefined, { type: "unknown" }),
-        new timewindow.TimeWindowState()
+        new TimeWindowState(timewindow.availableTimeScales["10 min"])
       );
       assert.deepEqual(
-        (new timewindow.TimeWindowState()).scale,
+        (new TimeWindowState(timewindow.availableTimeScales["10 min"])).scale,
         {
           windowSize: moment.duration(10, "m"),
           windowValid: moment.duration(10, "s"),
@@ -55,7 +56,7 @@ describe("time window reducer", function() {
       let start = moment();
       let end = start.add(10, "s");
       it("should correctly overwrite previous value", () => {
-        let expected = new timewindow.TimeWindowState();
+        let expected = new TimeWindowState(timewindow.availableTimeScales["10 min"]);
         expected.currentWindow = {
           start,
           end,
@@ -72,7 +73,7 @@ describe("time window reducer", function() {
       let newSize = moment.duration(1, "h");
       let newValid = moment.duration(1, "m");
       it("should correctly overwrite previous value", () => {
-        let expected = new timewindow.TimeWindowState();
+        let expected = new TimeWindowState(timewindow.availableTimeScales["10 min"]);
         expected.scale = {
           windowSize: newSize,
           windowValid: newValid,

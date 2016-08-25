@@ -11,9 +11,7 @@ import { Dispatch } from "redux";
 import * as protos from  "../js/protos";
 import { Action, PayloadAction } from "../interfaces/action";
 import { queryTimeSeries } from "../util/api";
-
-type TSRequestMessage = cockroach.ts.tspb.TimeSeriesQueryRequestMessage;
-type TSResponseMessage = cockroach.ts.tspb.TimeSeriesQueryResponseMessage;
+import { AdminUIState, MetricsQuery, MetricQueryState, MetricQuerySet, TSRequestMessage, TSResponseMessage } from "./state";
 
 export const REQUEST = "cockroachui/metrics/REQUEST";
 export const RECEIVE = "cockroachui/metrics/RECEIVE";
@@ -36,31 +34,6 @@ interface WithID<T> {
 interface RequestWithResponse {
   request: TSRequestMessage;
   response: TSResponseMessage;
-}
-
-/**
- * MetricsQuery maintains the cached data for a single component.
- */
-export class MetricsQuery {
-  // ID of the component which owns this data.
-  id: string;
-  // The currently cached response data for this component.
-  data: TSResponseMessage;
-  // If the immediately previous request attempt returned an error, rather than
-  // a response, it is maintained here. Null if the previous request was
-  // successful.
-  error: Error;
-  // The previous request, which will have resulted in either "data" or "error"
-  // being populated.
-  request: TSRequestMessage;
-  // A possibly outstanding request used to retrieve data from the server for this
-  // component. This may represent a currently in-flight query, and thus is not
-  // necessarily the request used to retrieve the current value of "data".
-  nextRequest: TSRequestMessage;
-
-  constructor(id: string) {
-    this.id = id;
-  }
 }
 
 /**
@@ -98,14 +71,6 @@ function metricsQueryReducer(state: MetricsQuery, action: Action) {
 }
 
 /**
- * MetricsQueries is a collection of individual MetricsQuery objects, indexed by
- * component id.
- */
-interface MetricQuerySet {
-  [id: string]: MetricsQuery;
-}
-
-/**
  * metricsQueriesReducer dispatches actions to the correct MetricsQuery, based
  * on the ID of the actions.
  */
@@ -116,7 +81,7 @@ export function metricQuerySetReducer(state: MetricQuerySet = {}, action: Action
     case ERROR:
       // All of these requests should be dispatched to a MetricQuery in the
       // collection. If a MetricQuery with that ID does not yet exist, create it.
-      let { id } = (action as PayloadAction<WithID<any>>).payload;
+      let { id } = (action as PayloadAction<WithID<TSResponseMessage|Error>>).payload;
       state = _.clone(state);
       state[id] = metricsQueryReducer(state[id] || new MetricsQuery(id), action);
       return state;
@@ -124,17 +89,6 @@ export function metricQuerySetReducer(state: MetricQuerySet = {}, action: Action
     default:
       return state;
   }
-}
-
-/**
- * MetricQueryState maintains a MetricQuerySet collection, along with some
- * metadata relevant to server queries.
- */
-export class MetricQueryState {
-  // A count of the number of in-flight fetch requests.
-  inFlight = 0;
-  // The collection of MetricQuery objects.
-  queries: MetricQuerySet;
 }
 
 /**
@@ -252,8 +206,8 @@ let queuePromise: Promise<void> = null;
  * specifically, queries which have the same time span can be handled by the
  * server in a single call.
  */
-export function queryMetrics<S>(id: string, query: TSRequestMessage) {
-  return (dispatch: Dispatch<S>): Promise<void> => {
+export function queryMetrics(id: string, query: TSRequestMessage) {
+  return (dispatch: Dispatch<AdminUIState>): Promise<void> => {
     // Indicate that this request has been received and queued.
     dispatch(requestMetrics(id, query));
     queuedRequests.push({

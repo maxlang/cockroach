@@ -4,9 +4,8 @@ import * as ReactPaginate from "react-paginate";
 import { Link } from "react-router";
 import { connect } from "react-redux";
 
-import { AdminUIState } from "../redux/state";
+import { AdminUIState, CachedDataReducerState } from "../redux/state";
 import { refreshRaft } from "../redux/apiReducers";
-import { CachedDataReducerState } from "../redux/cachedDataReducer";
 import { ToolTip } from "../components/toolTip";
 
 /******************************

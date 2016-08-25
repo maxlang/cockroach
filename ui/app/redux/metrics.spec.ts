@@ -4,6 +4,7 @@ import Long from "long";
 import fetchMock from "../util/fetch-mock";
 
 import * as protos from "../js/protos";
+import { MetricQueryState } from "./state";
 import * as metrics from "./metrics";
 import reducer from "./metrics";
 import { Action } from "../interfaces/action";
@@ -35,7 +36,7 @@ describe("metrics reducer", function() {
 
   describe("reducer", function() {
     let componentID = "test-component";
-    let state: metrics.MetricQueryState;
+    let state: MetricQueryState;
 
     beforeEach(() => {
       state = reducer(undefined, { type: "unknown" });
@@ -136,7 +137,7 @@ describe("metrics reducer", function() {
     };
 
     // Mock of metrics state.
-    let mockMetricsState: metrics.MetricQueryState;
+    let mockMetricsState: MetricQueryState;
     let mockDispatch = function(action: Action) {
       mockMetricsState = reducer(mockMetricsState, action);
     };

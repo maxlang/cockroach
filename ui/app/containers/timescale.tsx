@@ -3,11 +3,11 @@ import { connect } from "react-redux";
 import classNames from "classnames";
 import _ from "lodash";
 
-import { AdminUIState } from "../redux/state";
+import { AdminUIState, TimeScale, TimeWindowState } from "../redux/state";
 import * as timewindow from "../redux/timewindow";
 
 interface TimeScaleSelectorProps {
-  currentScale: timewindow.TimeScale;
+  currentScale: TimeScale;
   availableScales: timewindow.TimeScaleCollection;
   setTimeScale: typeof timewindow.setTimeScale;
 }
@@ -41,11 +41,11 @@ class TimeScaleSelector extends React.Component<TimeScaleSelectorProps, TimeScal
     }
   };
 
-  changeSettings(newSettings: timewindow.TimeScale) {
+  changeSettings(newSettings: TimeScale) {
     this.props.setTimeScale(newSettings);
   }
 
-  isSelected(scale: timewindow.TimeScale) {
+  isSelected(scale: TimeScale) {
     return scale === this.props.currentScale;
   }
 
@@ -91,7 +91,7 @@ class TimeScaleSelector extends React.Component<TimeScaleSelectorProps, TimeScal
 export default connect(
   (state: AdminUIState) => {
     return {
-      currentScale: (state.timewindow as timewindow.TimeWindowState).scale,
+      currentScale: (state.timewindow as TimeWindowState).scale,
       availableScales: timewindow.availableTimeScales,
     };
   },

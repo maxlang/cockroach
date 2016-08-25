@@ -5,9 +5,9 @@ import { connect } from "react-redux";
 import * as protos from "../../js/protos";
 import { databaseNameAttr, tableNameAttr } from "../../util/constants";
 
-import { AdminUIState } from "../../redux/state";
+import { AdminUIState, CachedDataReducerState } from "../../redux/state";
 import { setUISetting } from "../../redux/ui";
-import { refreshDatabaseDetails, refreshTableDetails, generateTableID, CachedDataReducerState } from "../../redux/apiReducers";
+import { refreshDatabaseDetails, refreshTableDetails, generateTableID } from "../../redux/apiReducers";
 
 import { SortSetting } from "../../components/sortabletable";
 import { SortedTable } from "../../components/sortedtable";

@@ -6,8 +6,8 @@ import { refreshLogs } from "../redux/apiReducers";
 import { connect } from "react-redux";
 
 import * as protos from "../js/protos";
+import { LogEntriesResponseMessage } from "../redux/state";
 import { nodeIDAttr } from "../util/constants";
-import { LogEntriesResponseMessage } from "../util/api";
 import { LongToMoment } from "../util/convert";
 import { Severity } from "../util/protoEnums";
 

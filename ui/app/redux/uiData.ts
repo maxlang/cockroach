@@ -5,6 +5,7 @@ import ByteBuffer from "bytebuffer";
 import * as protos from  "../js/protos";
 import { Action, PayloadAction } from "../interfaces/action";
 import { getUIData, setUIData } from "../util/api";
+import { AdminUIState, UIDataSet } from "./state";
 
 export const SET = "cockroachui/uidata/SET_OPTIN";
 export const ERROR = "cockroachui/uidata/ERROR";
@@ -31,17 +32,6 @@ export class OptInAttributes {
 
 // VERSION_DISMISSED_KEY is the uiData key on the server that tracks when the outdated banner was last dismissed.
 export const VERSION_DISMISSED_KEY = "version_dismissed";
-
-/**
- * UIDataSet maintains the current values of fields that are persisted to the
- * server as UIData. Fields are maintained in this collection as untyped
- * objects.
- */
-export class UIDataSet {
-  inFlight = 0;
-  error: Error;
-  data: {[key: string]: any} = {};
-}
 
 /**
  * Reducer which modifies a UIDataSet.
@@ -124,8 +114,8 @@ export interface KeyValue {
  * the values have been successfully persisted to the server, they are updated
  * in the local UIDataSet store.
  */
-export function saveUIData<S>(...values: KeyValue[]) {
-  return (dispatch: Dispatch<S>, getState: () => S): Promise<void> => {
+export function saveUIData(...values: KeyValue[]) {
+  return (dispatch: Dispatch<AdminUIState>, getState: () => AdminUIState): Promise<void> => {
     dispatch(fetchUIData());
 
     // Encode data for each UIData key. Each object is stringified and written
@@ -151,8 +141,8 @@ export function saveUIData<S>(...values: KeyValue[]) {
 /**
  * loadUIData loads the values of the give UIData keys from the server.
  */
-export function loadUIData<S>(...keys: string[]) {
-  return (dispatch: Dispatch<S>, getState: () => S): Promise<void> => {
+export function loadUIData(...keys: string[]) {
+  return (dispatch: Dispatch<AdminUIState>, getState: () => AdminUIState): Promise<void> => {
     dispatch(fetchUIData());
 
     return getUIData(new protos.cockroach.server.serverpb.GetUIDataRequest({ keys })).then((response) => {

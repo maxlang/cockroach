@@ -1,4 +1,5 @@
-import reducer, { UISetting, setUISetting, UISettingsDict } from "./ui";
+import { UISettingsDict } from "./state";
+import reducer, { UISetting, setUISetting } from "./ui";
 import { assert } from "chai";
 
 describe("ui reducer", () => {

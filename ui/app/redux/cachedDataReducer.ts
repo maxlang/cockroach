@@ -9,23 +9,9 @@ import { Dispatch } from "redux";
 import { assert } from "chai";
 import moment = require("moment");
 
-import { APIRequestFn } from "../util/api.ts";
-
+import { AdminUIState, CachedDataReducerState, KeyedCachedDataReducerState } from "./state";
 import { Action, PayloadAction, WithRequest } from "../interfaces/action";
-
-// CachedDataReducerState is used to track the state of the cached data.
-export class CachedDataReducerState<TResponseMessage> {
-  data: TResponseMessage; // the latest data received
-  inFlight = false; // true if a request is in flight
-  valid = false; // true if data has been received and has not been invalidated
-  lastError: Error; // populated with the most recent error, if the last request failed
-}
-
-// KeyedCachedDataReducerState is used to track the state of the cached data
-// that is associated with a key.
-export class KeyedCachedDataReducerState<TResponseMessage> {
-  [id: string]: CachedDataReducerState<TResponseMessage>;
-}
+import { APIRequestFn } from "../util/api.ts";
 
 /**
  * CachedDataReducer is a wrapper object that contains a redux reducer and a
@@ -44,6 +30,8 @@ export class CachedDataReducer<TRequest, TResponseMessage> {
   RECEIVE: string; // receive new data
   ERROR: string; // request encountered an error
   INVALIDATE: string; // invalidate data
+
+  public stateAccessor = (state: AdminUIState, req: TRequest): CachedDataReducerState<TResponseMessage> => (state.cachedData as any)[this.actionNamespace];
 
   /**
    * apiEndpoint - The API endpoint used to refresh data.
@@ -144,9 +132,9 @@ export class CachedDataReducer<TRequest, TResponseMessage> {
    * stateAccessor (optional) - a helper function that accesses this reducer's
    *   state given the global state object
    */
-  refresh = <S>(req?: TRequest, stateAccessor = (state: any, r: TRequest) => state.cachedData[this.actionNamespace]) => {
-    return (dispatch: Dispatch<S>, getState: () => any) => {
-      let state: CachedDataReducerState<TResponseMessage> = stateAccessor(getState(), req);
+  refresh = (req?: TRequest) => {
+    return (dispatch: Dispatch<AdminUIState>, getState: () => AdminUIState) => {
+      let state: CachedDataReducerState<TResponseMessage> = this.stateAccessor(getState(), req);
 
       if (state && (state.inFlight || (this.invalidationPeriod && state.valid))) {
         return;
@@ -158,17 +146,25 @@ export class CachedDataReducer<TRequest, TResponseMessage> {
       return this.apiEndpoint(req, this.invalidationPeriod).then((data) => {
         // Dispatch the results to the store.
         dispatch(this.receiveData(data, req));
+      }).then(() => {
+        // Invalidate data after the invalidation period if one exists.
+        if (this.invalidationPeriod) {
+          setTimeout(() => dispatch(this.invalidateData(req)), this.invalidationPeriod.asMilliseconds());
+        }
       }).catch((error: Error) => {
         // If an error occurred during the fetch, it to the store.
         dispatch(this.errorData(error, req));
-      }).then(() => {
-        // Invalidate data after the invalidation period if one exists.
         if (this.invalidationPeriod) {
           setTimeout(() => dispatch(this.invalidateData(req)), this.invalidationPeriod.asMilliseconds());
         }
       });
     };
   }
+
+  errorSelector = (state: AdminUIState, req: TRequest): Error => this.stateAccessor(state, req).lastError;
+  validSelector = (state: AdminUIState, req: TRequest): boolean => this.stateAccessor(state, req).valid;
+  dataSelector = (state: AdminUIState, req: TRequest): TResponseMessage => this.stateAccessor(state, req).data;
+  validDataSelector = (state: AdminUIState, req: TRequest): TResponseMessage =>  (this.stateAccessor(state, req).valid && !this.stateAccessor(state, req).lastError) ? this.stateAccessor(state, req).data : null;
 }
 
 /**
@@ -197,6 +193,7 @@ export class KeyedCachedDataReducer<TRequest, TResponseMessage> {
    */
   constructor(protected apiEndpoint: (req: TRequest) => Promise<TResponseMessage>, public actionNamespace: string, private requestToID: (req: TRequest) => string, protected invalidationPeriod?: moment.Duration) {
     this.cachedDataReducer = new CachedDataReducer<TRequest, TResponseMessage>(apiEndpoint, actionNamespace, invalidationPeriod);
+    this.cachedDataReducer.stateAccessor = (state: AdminUIState, r: TRequest): CachedDataReducerState<TResponseMessage> => (state.cachedData as any)[this.cachedDataReducer.actionNamespace][this.requestToID(r)];
   }
 
   /**
@@ -204,7 +201,7 @@ export class KeyedCachedDataReducer<TRequest, TResponseMessage> {
    * default stateAccessor that indexes in to the state based on a key generated
    * from the request.
    */
-  refresh = (req?: TRequest, stateAccessor = (state: any, r: TRequest) => state.cachedData[this.cachedDataReducer.actionNamespace][this.requestToID(r)]) => this.cachedDataReducer.refresh(req, stateAccessor);
+  refresh = (req?: TRequest) => this.cachedDataReducer.refresh(req);
 
   /**
    * Keyed redux reducer which pulls out the id from the action payload and then

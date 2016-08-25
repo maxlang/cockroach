@@ -5,9 +5,9 @@ import { connect } from "react-redux";
 import { createSelector } from "reselect";
 
 import * as protos from "../../js/protos";
-import { AdminUIState } from "../../redux/state";
+import { AdminUIState, KeyedCachedDataReducerState } from "../../redux/state";
 import { setUISetting } from "../../redux/ui";
-import { refreshDatabases, refreshDatabaseDetails, KeyedCachedDataReducerState } from "../../redux/apiReducers";
+import { refreshDatabases, refreshDatabaseDetails } from "../../redux/apiReducers";
 import { SortSetting } from "../../components/sortabletable";
 import { SortedTable } from "../../components/sortedtable";
 
@@ -70,7 +70,7 @@ class DatabaseList extends React.Component<DatabaseListProps, {}> {
     this.props.setUISetting(UI_DATABASES_SORT_SETTING_KEY, setting);
   }
 
-  // loadDatabaseDetails loads detailed data for each database with no info in 
+  // loadDatabaseDetails loads detailed data for each database with no info in
   // the store.
   loadDatabaseDetails(props = this.props) {
     if (props.databaseInfos.length) {

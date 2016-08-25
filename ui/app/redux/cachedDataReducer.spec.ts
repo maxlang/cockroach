@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import _ from "lodash";
-import { CachedDataReducer, CachedDataReducerState, KeyedCachedDataReducer, KeyedCachedDataReducerState } from "./cachedDataReducer";
+import { AdminUIState, CachedDataReducerState, KeyedCachedDataReducerState } from "./state";
+import { CachedDataReducer, KeyedCachedDataReducer } from "./cachedDataReducer";
 import { Action } from "../interfaces/action";
 
 describe("basic cachedDataReducer", function () {
@@ -105,7 +106,7 @@ describe("basic cachedDataReducer", function () {
 
         let testString = "refresh test string";
 
-        return testReducerObj.refresh(new Request(testString))(dispatch, () => state).then(() => {
+        return testReducerObj.refresh(new Request(testString))(dispatch, () => (state as any as AdminUIState)).then(() => {
           expected = new CachedDataReducerState<Response>();
           expected.valid = true;
           expected.data = new Response(testString);

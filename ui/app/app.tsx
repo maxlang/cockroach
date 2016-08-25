@@ -48,7 +48,7 @@ import { Router, Route, IndexRoute, IndexRedirect } from "react-router";
 
 import { databaseNameAttr, nodeIDAttr, tableNameAttr } from "./util/constants";
 
-import { store, history } from "./redux/state";
+import { store, history } from "./redux/store";
 import Layout from "./containers/layout";
 import Cluster from "./containers/cluster";
 import ClusterOverview from "./containers/clusterOverview";

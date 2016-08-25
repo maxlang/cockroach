@@ -2,12 +2,12 @@ import * as React from "react";
 import { connect } from "react-redux";
 import moment from "moment";
 
-import { AdminUIState } from "../redux/state";
+import { AdminUIState, TimeWindowState } from "../redux/state";
 import * as timewindow from "../redux/timewindow";
 
 interface TimeWindowManagerProps {
   // The current timewindow redux state.
-  timeWindow: timewindow.TimeWindowState;
+  timeWindow: TimeWindowState;
   // Callback function used to set a new time window.
   setTimeWindow: typeof timewindow.setTimeWindow;
   // Optional override method to obtain the current time. Used for tests.

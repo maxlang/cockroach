@@ -5,9 +5,8 @@ import _ from "lodash";
 import Long from "long";
 
 import * as protos from  "../js/protos";
-import { AdminUIState } from "../redux/state";
-import { queryMetrics, MetricsQuery } from "../redux/metrics";
-import * as timewindow from "../redux/timewindow";
+import { AdminUIState, MetricsQuery, TimeWindowState } from "../redux/state";
+import { queryMetrics } from "../redux/metrics";
 import { MetricProps, Metric, MetricsDataComponentProps } from "../components/graphs";
 import { findChildrenOfType } from "../util/find";
 import { MilliToNano } from "../util/convert";
@@ -187,7 +186,7 @@ class MetricsDataProvider extends React.Component<MetricsDataProviderProps, {}> 
 // timeSpanSelector converts the current global time window into a pair of Long
 // values, which can be sent with requests to the server.
 let timeSpanSelector = createSelector(
-  (state: AdminUIState) => state.timewindow as timewindow.TimeWindowState,
+  (state: AdminUIState) => state.timewindow as TimeWindowState,
   (tw) => {
     if (!_.isObject(tw.currentWindow)) {
       return null;

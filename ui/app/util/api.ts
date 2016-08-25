@@ -9,51 +9,12 @@ import "whatwg-fetch";
 import moment = require("moment");
 
 import * as protos from "../js/protos";
+import * as state from "../redux/state";
 
 let serverpb = protos.cockroach.server.serverpb;
 let ts = protos.cockroach.ts.tspb;
 
-export type DatabasesRequestMessage = cockroach.server.serverpb.DatabasesRequestMessage;
-export type DatabasesResponseMessage = cockroach.server.serverpb.DatabasesResponseMessage;
-
-export type DatabaseDetailsRequestMessage = cockroach.server.serverpb.DatabaseDetailsRequestMessage;
-export type DatabaseDetailsResponseMessage = cockroach.server.serverpb.DatabaseDetailsResponseMessage;
-
-export type TableDetailsRequestMessage = cockroach.server.serverpb.TableDetailsRequestMessage;
-export type TableDetailsResponseMessage = cockroach.server.serverpb.TableDetailsResponseMessage;
-
-export type EventsRequestMessage = cockroach.server.serverpb.EventsRequestMessage;
-export type EventsResponseMessage = cockroach.server.serverpb.EventsResponseMessage;
-
-export type NodesRequestMessage = cockroach.server.serverpb.NodesRequestMessage;
-export type NodesResponseMessage = cockroach.server.serverpb.NodesResponseMessage;
-
-export type GetUIDataRequestMessage = cockroach.server.serverpb.GetUIDataRequestMessage;
-export type GetUIDataResponseMessage = cockroach.server.serverpb.GetUIDataResponseMessage;
-
-export type SetUIDataRequestMessage = cockroach.server.serverpb.SetUIDataRequestMessage;
-export type SetUIDataResponseMessage = cockroach.server.serverpb.SetUIDataResponseMessage;
-
-export type RaftDebugRequestMessage = cockroach.server.serverpb.RaftDebugRequestMessage;
-export type RaftDebugResponseMessage = cockroach.server.serverpb.RaftDebugResponseMessage;
-
-export type TimeSeriesQueryRequestMessage = cockroach.ts.tspb.TimeSeriesQueryRequestMessage;
-export type TimeSeriesQueryResponseMessage = cockroach.ts.tspb.TimeSeriesQueryResponseMessage;
-
-export type HealthRequestMessage = cockroach.server.serverpb.HealthRequestMessage;
-export type HealthResponseMessage = cockroach.server.serverpb.HealthResponseMessage;
-
-export type ClusterRequestMessage = cockroach.server.serverpb.ClusterRequestMessage;
-export type ClusterResponseMessage = cockroach.server.serverpb.ClusterResponseMessage;
-
-export type TableStatsRequestMessage = cockroach.server.serverpb.TableStatsRequestMessage;
-export type TableStatsResponseMessage = cockroach.server.serverpb.TableStatsResponseMessage;
-
-export type LogsRequestMessage = cockroach.server.serverpb.LogsRequestMessage;
-export type LogEntriesResponseMessage = cockroach.server.serverpb.LogEntriesResponseMessage;
-
 // API constants
-
 export const API_PREFIX = "/_admin/v1";
 export const STATUS_PREFIX = "/_status";
 
@@ -126,69 +87,69 @@ export function propsToQueryString(props: any) {
  */
 
 // getDatabaseList gets a list of all database names
-export function getDatabaseList(req: DatabasesRequestMessage, timeout?: moment.Duration): Promise<DatabasesResponseMessage> {
+export function getDatabaseList(req: state.DatabasesRequestMessage, timeout?: moment.Duration): Promise<state.DatabasesResponseMessage> {
   return timeoutFetch(serverpb.DatabasesResponse, `${API_PREFIX}/databases`, null, timeout);
 }
 
 // getDatabaseDetails gets details for a specific database
-export function getDatabaseDetails(req: DatabaseDetailsRequestMessage, timeout?: moment.Duration): Promise<DatabaseDetailsResponseMessage> {
+export function getDatabaseDetails(req: state.DatabaseDetailsRequestMessage, timeout?: moment.Duration): Promise<state.DatabaseDetailsResponseMessage> {
   return timeoutFetch(serverpb.DatabaseDetailsResponse, `${API_PREFIX}/databases/${req.database}`, null, timeout);
 }
 
 // getTableDetails gets details for a specific table
-export function getTableDetails(req: TableDetailsRequestMessage, timeout?: moment.Duration): Promise<TableDetailsResponseMessage> {
+export function getTableDetails(req: state.TableDetailsRequestMessage, timeout?: moment.Duration): Promise<state.TableDetailsResponseMessage> {
   return timeoutFetch(serverpb.TableDetailsResponse, `${API_PREFIX}/databases/${req.database}/tables/${req.table}`, null, timeout);
 }
 
 // getUIData gets UI data
-export function getUIData(req: GetUIDataRequestMessage, timeout?: moment.Duration): Promise<GetUIDataResponseMessage> {
+export function getUIData(req: state.GetUIDataRequestMessage, timeout?: moment.Duration): Promise<state.GetUIDataResponseMessage> {
   let queryString = _.map(req.keys, (key) => "keys=" + encodeURIComponent(key)).join("&");
   return timeoutFetch(serverpb.GetUIDataResponse, `${API_PREFIX}/uidata?${queryString}`, null, timeout);
 }
 
 // setUIData sets UI data
-export function setUIData(req: SetUIDataRequestMessage, timeout?: moment.Duration): Promise<SetUIDataResponseMessage> {
+export function setUIData(req: state.SetUIDataRequestMessage, timeout?: moment.Duration): Promise<state.SetUIDataResponseMessage> {
   return timeoutFetch(serverpb.SetUIDataResponse, `${API_PREFIX}/uidata`, req, timeout);
 }
 
 // getEvents gets event data
-export function getEvents(req: EventsRequestMessage, timeout?: moment.Duration): Promise<EventsResponseMessage> {
+export function getEvents(req: state.EventsRequestMessage, timeout?: moment.Duration): Promise<state.EventsResponseMessage> {
   let queryString = propsToQueryString(_.pick(req, ["type", "target_id"]));
   return timeoutFetch(serverpb.EventsResponse, `${API_PREFIX}/events?${queryString}`, null, timeout);
 }
 
 // getNodes gets node data
-export function getNodes(req: NodesRequestMessage, timeout?: moment.Duration): Promise<NodesResponseMessage> {
+export function getNodes(req: state.NodesRequestMessage, timeout?: moment.Duration): Promise<state.NodesResponseMessage> {
   return timeoutFetch(serverpb.NodesResponse, `/_status/nodes`, null, timeout);
 }
 
-export function raftDebug(req: RaftDebugRequestMessage): Promise<RaftDebugResponseMessage> {
+export function raftDebug(req: state.RaftDebugRequestMessage): Promise<state.RaftDebugResponseMessage> {
   // NB: raftDebug intentionally does not pass a timeout through.
   return timeoutFetch(serverpb.RaftDebugResponse, `/_status/raft`);
 }
 
 // queryTimeSeries queries for time series data
-export function queryTimeSeries(req: TimeSeriesQueryRequestMessage, timeout?: moment.Duration): Promise<TimeSeriesQueryResponseMessage> {
+export function queryTimeSeries(req: state.TimeSeriesQueryRequestMessage, timeout?: moment.Duration): Promise<state.TimeSeriesQueryResponseMessage> {
   return timeoutFetch(ts.TimeSeriesQueryResponse, `/ts/query`, req, timeout);
 }
 
 // getHealth gets health data
-export function getHealth(req: HealthRequestMessage, timeout?: moment.Duration): Promise<HealthResponseMessage> {
+export function getHealth(req: state.HealthRequestMessage, timeout?: moment.Duration): Promise<state.HealthResponseMessage> {
   return timeoutFetch(serverpb.HealthResponse, `${API_PREFIX}/health`, null, timeout);
 }
 
 // getCluster gets info about the cluster
-export function getCluster(req: ClusterRequestMessage, timeout?: moment.Duration): Promise<ClusterResponseMessage> {
+export function getCluster(req: state.ClusterRequestMessage, timeout?: moment.Duration): Promise<state.ClusterResponseMessage> {
   return timeoutFetch(serverpb.ClusterResponse, `${API_PREFIX}/cluster`, null, timeout);
 }
 
 // getTableStats gets details stats about the current table
-export function getTableStats(req: TableStatsRequestMessage, timeout?: moment.Duration): Promise<TableStatsResponseMessage> {
+export function getTableStats(req: state.TableStatsRequestMessage, timeout?: moment.Duration): Promise<state.TableStatsResponseMessage> {
   return timeoutFetch(serverpb.TableStatsResponse, `${API_PREFIX}/databases/${req.database}/tables/${req.table}/stats`, null, timeout);
 }
 
 // TODO (maxlang): add filtering
 // getLogs gets the logs for a specific node
-export function getLogs(req: LogsRequestMessage, timeout?: moment.Duration): Promise<LogEntriesResponseMessage> {
+export function getLogs(req: state.LogsRequestMessage, timeout?: moment.Duration): Promise<state.LogEntriesResponseMessage> {
   return timeoutFetch(serverpb.LogEntriesResponse, `${STATUS_PREFIX}/logs/${req.node_id}`, null, timeout);
 }

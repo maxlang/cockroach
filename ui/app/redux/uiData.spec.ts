@@ -6,6 +6,7 @@ import fetchMock from "../util/fetch-mock";
 import * as protos from "../js/protos";
 import reducer from "./uiData";
 import * as uidata from "./uiData";
+import { UIDataSet } from "./state";
 
 import { Action } from "../interfaces/action";
 
@@ -29,7 +30,7 @@ describe("UIData reducer", function() {
   });
 
   describe("reducer", function() {
-    let state: uidata.UIDataSet;
+    let state: UIDataSet;
 
     beforeEach(function () {
       state = reducer(undefined, { type: "unknown" });
@@ -93,7 +94,7 @@ describe("UIData reducer", function() {
   });
 
   describe("asynchronous actions", function() {
-    let state: uidata.UIDataSet;
+    let state: UIDataSet;
 
     let dispatch = (action: Action) => {
       state = reducer(state, action);

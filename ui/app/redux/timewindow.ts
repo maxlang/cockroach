@@ -7,31 +7,10 @@ import { Action, PayloadAction } from "../interfaces/action";
 import _ from "lodash";
 import moment from "moment";
 
+import { TimeScale, TimeWindow, TimeWindowState } from "./state";
+
 export const SET_WINDOW = "cockroachui/timewindow/SET_WINDOW";
 export const SET_SCALE = "cockroachui/timewindow/SET_SCALE";
-
-/**
- * TimeWindow represents an absolute window of time, defined with a start and
- * end time.
- */
-export interface TimeWindow {
-  start: moment.Moment;
-  end: moment.Moment;
-}
-
-/**
- * TimeScale describes the requested dimensions of TimeWindows; it
- * prescribes a length for the window, along with a period of time that a
- * newly created TimeWindow will remain valid.
- */
-export interface TimeScale {
-  // The size of a global time window. Default is ten minutes.
-  windowSize: moment.Duration;
-  // The length of time the global time window is valid. The current time window
-  // is invalid if now > (currentWindow.end + windowValid). Default is ten
-  // seconds.
-  windowValid: moment.Duration;
-}
 
 export interface TimeScaleCollection {
   [key: string]: TimeScale;
@@ -64,19 +43,7 @@ export let availableTimeScales: TimeScaleCollection = {
   },
 };
 
-export class TimeWindowState {
-  // Currently selected scale.
-  scale: TimeScale;
-  // Currently established time window.
-  currentWindow: TimeWindow;
-  // True if scale has changed since currentWindow was generated.
-  scaleChanged: boolean;
-  constructor() {
-    this.scale = availableTimeScales["10 min"];
-  }
-}
-
-export default function(state = new TimeWindowState(), action: Action): TimeWindowState {
+export default function(state = new TimeWindowState(availableTimeScales["10 min"]), action: Action): TimeWindowState {
   switch (action.type) {
     case SET_WINDOW:
       let { payload: tw } = action as PayloadAction<TimeWindow>;
