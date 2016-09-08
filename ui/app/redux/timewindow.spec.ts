@@ -47,9 +47,9 @@ describe("time window reducer", function() {
       assert.deepEqual(
         (new timewindow.TimeWindowState()).scale,
         {
-          windowSize: moment.duration(10, "m"),
-          windowValid: moment.duration(10, "s"),
-          sampleSize: moment.duration(10, "s"),
+          windowSize: moment.duration(1, "day"),
+          windowValid: moment.duration(10, "minutes"),
+          sampleSize: moment.duration(30, "minutes"),
         }
       );
     });

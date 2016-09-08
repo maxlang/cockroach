@@ -89,7 +89,7 @@ export class TimeWindowState {
   // True if scale has changed since currentWindow was generated.
   scaleChanged: boolean;
   constructor() {
-    this.scale = availableTimeScales["10 min"];
+    this.scale = availableTimeScales["1 day"];
   }
 }
 
