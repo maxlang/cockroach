@@ -15,7 +15,7 @@ import Visualization from "./visualization";
 const CHART_MARGINS: nvd3.Margin = {top: 20, right: 60, bottom: 20, left: 60};
 
 // Maximum number of series we will show in the legend. If there are more we hide the legend.
-const MAX_LEGEND_SERIES: number = 3;
+const MAX_LEGEND_SERIES: number = 10;
 
 interface LineGraphProps extends MetricsDataComponentProps {
   title?: string;

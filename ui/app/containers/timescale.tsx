@@ -108,29 +108,43 @@ class TimeScaleSelector extends React.Component<TimeScaleSelectorProps, TimeScal
   render() {
     let selectorClass = classNames({
       "timescale-selector": true,
-      "show": this.state.controlsVisible,
+      "show": true, // this.state.controlsVisible,
     });
-    return <div className="timescale-selector-container">
-      <button
-        className="timescale"
-        ref={(timescaleBtn) => this.timescaleBtn = timescaleBtn}
-        onClick={() => this.setVisible(!this.state.controlsVisible)}>
-          Select Timescale
-      </button>
-      <div className={selectorClass}>
-        <div className="text">View Last: </div>
-        {
-          _.map(this.props.availableScales, (scale, key) => {
-            let theseSettings = scale;
-            return <button key={key}
-                           className={classNames({selected: this.isSelected(scale)})}
-                           onClick={(e) => { this.changeSettings(theseSettings); this.setVisible(false); } }>
-                           { key }
-            </button>;
-          })
-        }
-      </div>
+    return <div className={selectorClass}>
+      <div className="text">View Last: </div>
+      {
+        _.map(this.props.availableScales, (scale, key) => {
+          let theseSettings = scale;
+          return <button key={key}
+            className={classNames({ selected: this.isSelected(scale) })}
+            onClick={(e) => { this.changeSettings(theseSettings); this.setVisible(false); } }>
+            {key}
+          </button>;
+        })
+      }
     </div>;
+
+    // return <div className="timescale-selector-container">
+    //   <button
+    //     className="timescale"
+    //     ref={(timescaleBtn) => this.timescaleBtn = timescaleBtn}
+    //     onClick={() => this.setVisible(!this.state.controlsVisible)}>
+    //       Select Timescale
+    //   </button>
+    //   <div className={selectorClass}>
+    //     <div className="text">View Last: </div>
+    //     {
+    //       _.map(this.props.availableScales, (scale, key) => {
+    //         let theseSettings = scale;
+    //         return <button key={key}
+    //                        className={classNames({selected: this.isSelected(scale)})}
+    //                        onClick={(e) => { this.changeSettings(theseSettings); this.setVisible(false); } }>
+    //                        { key }
+    //         </button>;
+    //       })
+    //     }
+    //   </div>
+    // </div>;
   }
 }
 

@@ -21,6 +21,9 @@ Author: Max Lang (max@cockroachlabs.com)
 $viz-top = 30px
 $viz-bottom = 65px
 $viz-sides = 62px
+$viz-width = 1000px
+$viz-height = 289px
+$viz-vertical-spacing = 30px
 
 .visualization-wrapper
   display inline-flex
@@ -29,11 +32,12 @@ $viz-sides = 62px
   // prevents borders from doubling up
   margin-left -1px
   margin-top -1px
+  margin-bottom $viz-vertical-spacing
   flex-direction column
   justify-content space-between
   align-items stretch
-  width 316px
-  height 289px
+  width $viz-width
+  height $viz-height
   position relative
 
   .linegraph
@@ -41,12 +45,14 @@ $viz-sides = 62px
     height 175px
 
 .viz-top
-  height $viz-top
+  // height $viz-top
   display block
+  width 100%
+  padding-top 10px
 
 .viz-info-icon
   float right
-  margin 10px 15px 0 0
+  margin 0 15px 0 0
   color $secondary-gray-5
 
   .icon-warning
@@ -55,14 +61,16 @@ $viz-sides = 62px
 .viz-bottom
   height $viz-bottom
 
-  .viz-title
-    width 100%
-    text-align center
-    font-family Lato-Heavy
-    font-size 11px
-    text-transform uppercase
-    letter-spacing 2px
-    color $secondary-light-gray
+.viz-title div
+  text-align center
+  font-family Lato-Heavy
+  font-size 11px
+  text-transform uppercase
+  letter-spacing 2px
+  // color $secondary-light-gray
+
+  div
+    display inline
 
 .visualization
   height 100%
@@ -104,3 +112,20 @@ $viz-sides = 62px
 
 .nvtooltip table tr.highlight td:first-child
   padding 2px 9px 2px 3rem
+
+.graph-group
+  clear both
+
+.graph-group-title
+  display inline
+
+.expand-icon
+  margin-left 10px
+  transition transform .5s ease-in-out
+
+  &.hidden
+    transform rotate(180deg)
+
+  &.shown
+    transform rotate(0deg)
+

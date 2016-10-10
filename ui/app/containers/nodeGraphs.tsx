@@ -24,8 +24,7 @@ export default class extends React.Component<IInjectedProps, {}> {
 
     return <div className="section node">
       <div className="charts">
-        <h2>Activity</h2>
-          <GraphGroup groupId="node.activity">
+        <GraphGroup groupId="node.activity" title="Activity" shownDefault={true}>
           <LineGraph title="SQL Connections" sources={sources} tooltip={`The total number of active SQL connections ${specifier}.`}>
               <Axis format={ d3.format(".1f") }>
                 <Metric name="cr.node.sql.conns" title="Client Connections" />
@@ -77,8 +76,7 @@ export default class extends React.Component<IInjectedProps, {}> {
             </LineGraph>
 
           </GraphGroup>
-        <h2>SQL Queries</h2>
-          <GraphGroup groupId="node.queries">
+          <GraphGroup groupId="node.queries" title="SQL Queries">
             <LineGraph title="Reads" sources={sources} tooltip={`The average number of SELECT statements per second ${specifier}.`}>
               <Axis format={ d3.format(".1f") }>
                 <Metric name="cr.node.sql.select.count" title="Selects" nonNegativeRate />
@@ -108,8 +106,7 @@ export default class extends React.Component<IInjectedProps, {}> {
             </LineGraph>
 
           </GraphGroup>
-        <h2>System Resources</h2>
-          <GraphGroup groupId="node.resources">
+          <GraphGroup groupId="node.resources" title="System Resources">
 
             <StackedAreaGraph title="CPU Usage" sources={sources} tooltip={`The average percentage of CPU used by CockroachDB (User %) and system-level operations (Sys %) ${specifier}.`}>
               <Axis format={ d3.format(".2%") }>
@@ -147,8 +144,7 @@ export default class extends React.Component<IInjectedProps, {}> {
             </LineGraph>
 
           </GraphGroup>
-        <h2>Advanced Internals</h2>
-          <GraphGroup groupId="node.internals">
+          <GraphGroup groupId="node.internals" title="Advanced Internals">
 
             <StackedAreaGraph title="Key/Value Transactions" sources={sources}>
               <Axis label="transactions/sec" format={ d3.format(".1f") }>

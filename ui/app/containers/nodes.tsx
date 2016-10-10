@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { ListLink } from "../components/listLink";
+// import { ListLink } from "../components/listLink";
 import TimeScaleSelector from "./timescale";
 
 /**
@@ -21,8 +21,8 @@ export default class Layout extends React.Component<{}, {}> {
     return <div>
       <div className="nav-container">
         <ul className="nav">
-          <ListLink to="/nodes/overview">Overview</ListLink>
-          <ListLink to="/nodes/graphs">Graphs</ListLink>
+          {/* <ListLink to="/nodes/overview">Overview</ListLink> */}
+          Nodes: All ▾
           { displayTimescale ? <TimeScaleSelector/> : null }
         </ul>
       </div>

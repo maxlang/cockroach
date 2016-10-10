@@ -42,13 +42,13 @@ export default class extends React.Component<VisualizationProps, {}> {
           // Display tooltip if specified.
           (tooltip) ? <ToolTip text={tooltip} title={title} warning={warning} warningTitle={warningTitle} /> : ""
         }
-      </div>
-        { this.props.children }
-      <div className="viz-bottom">
         <div className="viz-title">
           <div>{this.props.title}</div>
           { this.props.subtitle ? <div className="small">{this.props.subtitle}</div> : null }
         </div>
+      </div>
+        { this.props.children }
+      <div className="viz-bottom">
       </div>
     </div>;
   }

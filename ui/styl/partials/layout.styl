@@ -280,9 +280,10 @@ button
   letter-spacing 2.17px
   border-bottom 1px solid $secondary-gray-1
   height $subnav-height
-  position absolute
+  position fixed
   top $top-bar-height
   right 0
+  left $nav-width
   width 100%
   z-index 1
 
@@ -329,7 +330,7 @@ a.toggle
 .banner
   width 100%
   background-color $secondary-blue
-  transition height .2s ease-in, opacity .2s ease-in
+  transition height .2s ease-in, opacity .2s ease-in, visibility 0s ease-in
   font-family Lato-Medium
   font-size 13px
   text-align center
@@ -339,9 +340,11 @@ a.toggle
 
   &.expanded
     height 73px
+    visibility visible
 
   &.hidden
     height 0
+    visibility hidden
 
   &.disconnected
     background-color $secondary-salmon
@@ -573,7 +576,7 @@ table
       text-decoration none
       color $main-gray
 
-.tooltip, .timescale-selector
+.tooltip
   position absolute
   z-index $tooltip-layer
   padding 35px
@@ -634,18 +637,20 @@ div.charts
   position relative
 
 .timescale-selector
-  right auto
-  left 0
+  // right 0
+  // left 0
   top auto
   white-space nowrap
   padding 15px 25px
   display flex
+  padding-top 0
+  margin-left 50px
 
   .text
     margin-right 30px
 
   button
-    background-color white
+    background-color transparent
     color $main-navy
     width auto
     padding 10px
