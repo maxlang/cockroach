@@ -75,7 +75,7 @@ ReactDOM.render(
   <Provider store={store}>
     <Router history={history}>
       <Route path="/" component={Layout}>
-        <IndexRedirect to="cluster" />
+        <IndexRedirect to="nodes/graphs" />
         <Route path="cluster" component={ Cluster }>
           <IndexRoute component={ ClusterOverview } />
           <Route path="events" component={ ClusterEvents } />
