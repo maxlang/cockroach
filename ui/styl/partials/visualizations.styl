@@ -19,11 +19,11 @@ Author: Max Lang (max@cockroachlabs.com)
 @require '../modules/palette.styl'
 
 $viz-top = 30px
-$viz-bottom = 0px
+$viz-bottom = 0
 $viz-sides = 62px
-$viz-width = 1000px
-$viz-height = 289px
-$viz-vertical-spacing = 30px
+$viz-width = 800px
+$viz-height = 180px
+$viz-vertical-spacing = 10px
 
 .visualization-wrapper
   display inline-flex
@@ -42,7 +42,8 @@ $viz-vertical-spacing = 30px
 
   .linegraph
     padding 0
-    height 175px
+    // height 175px
+    height 105px
 
 .viz-top
   // height $viz-top
@@ -101,6 +102,10 @@ $viz-vertical-spacing = 30px
       .linegraph
         height 105px
 
+.inline
+  .visualization-wrapper
+    height 150px
+
 .viz-faded
   .visualization .number
   .nv-group
@@ -114,7 +119,7 @@ $viz-vertical-spacing = 30px
   padding 2px 9px 2px 3rem
 
 .graph-group
-  clear both
+  clear left
 
 .graph-group-title
   display inline
@@ -129,3 +134,9 @@ $viz-vertical-spacing = 30px
   &.shown
     transform rotate(0deg)
 
+.visualization
+  h3
+    margin-right 15px
+
+  a
+    text-decoration none

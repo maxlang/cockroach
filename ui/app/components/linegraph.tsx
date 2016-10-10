@@ -117,14 +117,14 @@ export class LineGraph extends React.Component<LineGraphProps, {}> {
       if (this.props.data) {
         let processed = ProcessDataPoints(metrics, axis, this.props.data);
         formattedData = processed.formattedData;
-        let {yAxisDomain, xAxisDomain } = processed;
+        let {yAxisDomain/*,xAxisDomain*/ } = processed;
 
         this.chart.yDomain(yAxisDomain.domain());
 
         // always set the tick values to the lowest axis value, the highest axis
         // value, and one value in between
         this.chart.yAxis.tickValues(yAxisDomain.ticks());
-        this.chart.xAxis.tickValues(xAxisDomain.ticks((n) => new Date(NanoToMilli(n))));
+        // this.chart.xAxis.tickValues(xAxisDomain.ticks((n) => new Date(NanoToMilli(n))));
       }
       try {
         d3.select(this.svgEl)

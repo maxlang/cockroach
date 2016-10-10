@@ -108,9 +108,6 @@ class AxisDomain {
   }
 }
 
-// Global set of d3 colors.
-let colors: d3.scale.Ordinal<string, string> = d3.scale.category10();
-
 /**
  * getTimestamps is a helper function that takes graph data from the server and
  * returns a SeenTimestamps object with all the values set to false. This object
@@ -144,6 +141,9 @@ export function ProcessDataPoints(metrics: React.ReactElement<MetricProps>[],
 
   // timestamps has a key for all the timestamps present across all datasets
   let timestamps = getTimestamps(metrics, data);
+
+  // Local set of d3 colors.
+  let colors: d3.scale.Ordinal<string, string> = d3.scale.category10();
 
   _.each(metrics, (s, idx) => {
     let result = data.results[idx];

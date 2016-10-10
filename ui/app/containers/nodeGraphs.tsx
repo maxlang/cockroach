@@ -1,6 +1,10 @@
+import _ from "lodash";
 import * as React from "react";
 import * as d3 from "d3";
 import { IInjectedProps } from "react-router";
+import { connect } from "react-redux";
+import { createSelector } from "reselect";
+import { Link } from "react-router";
 
 import { nodeIDAttr } from "./../util/constants";
 
@@ -9,11 +13,24 @@ import { LineGraph, Axis, Metric } from "../components/linegraph";
 import { StackedAreaGraph } from "../components/stackedgraph";
 import { Bytes } from "../util/format";
 import { NanoToMilli } from "../util/convert";
+import { AdminUIState } from "../redux/state";
+import { refreshNodes } from "../redux/apiReducers";
+import { NodeStatus, MetricConstants, BytesUsed } from  "../util/proto";
+
+
+interface NodeGraphsProps {
+  clusterInfo: {
+    totalNodes: number;
+    availableCapacity: number;
+    bytesUsed: number;
+  };
+  refreshNodes: typeof refreshNodes;
+}
 
 /**
  * Renders the main content of the help us page.
  */
-export default class extends React.Component<IInjectedProps, {}> {
+class NodeGraphs extends React.Component<NodeGraphsProps & IInjectedProps, {}> {
   static displayTimeScale = true;
 
   render() {
@@ -22,7 +39,26 @@ export default class extends React.Component<IInjectedProps, {}> {
     sources = node ? [node] : null;
     let specifier = node ? `on node ${node}` : "across all nodes";
 
+    let { totalNodes, bytesUsed, availableCapacity } = this.props.clusterInfo;
+    let capacityPercent = (availableCapacity !== 0) ? bytesUsed / (bytesUsed + availableCapacity) : 0.0;
+
     return <div className="section node">
+      <div className="summaries inline">
+        <div className="node-summary visualization-wrapper">
+          <div className="visualization">
+            <h3>Nodes</h3>
+            <Link to="/nodes/overview"><div style={{zoom:0.5}} className="number">{ d3.format("s")(totalNodes) }</div></Link>
+          </div>
+          <div className="visualization">
+            <h3>Capacity Used</h3>
+            <div style={{zoom:0.5}} className="number">{ d3.format("0.1%")(capacityPercent) }</div>
+          </div>
+        </div>
+
+        <div className="events-summary visualization-wrapper">
+          <h3>Events</h3>
+        </div>
+      </div>
       <div className="charts">
         <GraphGroup groupId="node.activity" title="Activity" shownDefault={true}>
           <LineGraph title="SQL Connections" sources={sources} tooltip={`The total number of active SQL connections ${specifier}.`}>
@@ -290,3 +326,28 @@ export default class extends React.Component<IInjectedProps, {}> {
     </div>;
   }
 }
+
+let nodeStatuses = (state: AdminUIState): NodeStatus[] => state.cachedData.nodes.data;
+let clusterInfo = createSelector(
+  nodeStatuses,
+  (nss) => {
+    return {
+      totalNodes: nss && nss.length || 0,
+      availableCapacity: _.sumBy(nss, (ns) => ns.metrics.get(MetricConstants.availableCapacity)),
+      bytesUsed: _.sumBy(nss, BytesUsed),
+    };
+  }
+);
+
+let nodeGraphsConnected = connect(
+  (state: AdminUIState): {} => {
+    return {
+      clusterInfo: clusterInfo(state),
+    };
+  },
+  {
+    refreshNodes,
+  }
+)(NodeGraphs);
+
+export default nodeGraphsConnected;
