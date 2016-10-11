@@ -122,14 +122,14 @@ export class StackedAreaGraph extends React.Component<StackedAreaGraphProps, {}>
       if (this.props.data) {
         let processed = ProcessDataPoints(metrics, axis, this.props.data, true);
         formattedData = processed.formattedData;
-        let {yAxisDomain, xAxisDomain } = processed;
+        let {yAxisDomain/*, xAxisDomain */} = processed;
 
         this.chart.yDomain(yAxisDomain.domain());
 
         // always set the tick values to the lowest axis value, the highest axis
         // value, and one value in between
         this.chart.yAxis.tickValues(yAxisDomain.ticks());
-        this.chart.xAxis.tickValues(xAxisDomain.ticks((n) => new Date(NanoToMilli(n))));
+        // this.chart.xAxis.tickValues(xAxisDomain.ticks((n) => new Date(NanoToMilli(n))));
       }
       try {
         d3.select(this.svgEl)
@@ -159,11 +159,28 @@ export class StackedAreaGraph extends React.Component<StackedAreaGraphProps, {}>
     this.drawChart();
   }
 
+  mouseEnter(e: React.MouseEvent) {
+    document.body.className += " show-graph-lines";
+  }
+
+  mouseMove(e: React.MouseEvent) {
+    let lines = document.getElementsByClassName("graph-line");
+    _.each(lines, (line: HTMLElement) => {
+      line.style.left = (e.clientX - CHART_MARGINS.left - 40) + "px";
+    });
+  }
+
+  mouseLeave(e: React.MouseEvent) {
+    console.log("leaving");
+    document.body.className = document.body.className.replace(/ show-graph-lines/g, "");
+  }
+
   render() {
     let { title, subtitle, tooltip } = this.props;
     return <Visualization title={title} subtitle={subtitle} tooltip={tooltip}>
       <div className="linegraph">
-        <svg className="graph" ref={(svg) => this.svgEl = svg}/>
+        <div className="graph-line"></div>
+        <svg className="graph" ref={(svg) => this.svgEl = svg} onMouseMove={this.mouseMove} onMouseEnter={this.mouseEnter} onMouseLeave={this.mouseLeave}  />
       </div>
     </Visualization>;
   }

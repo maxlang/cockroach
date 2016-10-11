@@ -11,6 +11,8 @@ import { MetricProps, Metric, MetricsDataComponentProps } from "../components/gr
 import { findChildrenOfType } from "../util/find";
 import { MilliToNano } from "../util/convert";
 import { TimeSeriesQueryAggregator, TimeSeriesQueryDerivative } from "../util/protoEnums";
+import { refreshNodes } from "../redux/apiReducers";
+import { NodeStatus } from  "../util/proto";
 
 type TSQueryMessage = Proto2TypeScript.cockroach.ts.tspb.QueryMessage;
 
@@ -81,6 +83,8 @@ interface MetricsDataProviderConnectProps {
   metrics: MetricsQuery;
   timeInfo: QueryTimeInfo;
   queryMetrics: typeof queryMetrics;
+  refreshNodes: typeof refreshNodes;
+  nodeIds: number[];
 }
 
 /**
@@ -89,6 +93,7 @@ interface MetricsDataProviderConnectProps {
  */
 interface MetricsDataProviderExplicitProps {
   id: string;
+  perNode: boolean;
 }
 
 /**
@@ -121,13 +126,25 @@ type MetricsDataProviderProps = MetricsDataProviderConnectProps & MetricsDataPro
  */
 class MetricsDataProvider extends React.Component<MetricsDataProviderProps, {}> {
   private queriesSelector = createSelector(
-    (props: MetricsDataProviderProps & {children?: any}) => props.children,
-    (children) => {
+    (props: MetricsDataProviderProps & { children?: any }) => props.children,
+    (props: MetricsDataProviderProps) => props.nodeIds,
+    (props: MetricsDataProviderProps) => props.perNode,
+    (children, sources, perNode) => {
       // MetricsDataProvider should contain only one direct child.
       let child = React.Children.only(this.props.children) as
         React.ReactElement<MetricsDataComponentProps>;
       // Perform a simple DFS to find all children which are Metric objects.
       let selectors: React.ReactElement<MetricProps>[] = findChildrenOfType(children, Metric);
+
+      // Replicate the selectors for each node if perNode is true
+      if (perNode) {
+        selectors = _.flatten(_.map(selectors, (s) => _.map(sources, (src) => {
+          let props = _.clone(s.props);
+          props.sources = [`${src}`];
+          let clone = React.cloneElement(s, props);
+          return clone;
+        })));
+      }
       // Construct a query for each found selector child.
       return _(selectors).map((s) => queryFromProps(s.props, child.props)).value();
     });
@@ -165,6 +182,7 @@ class MetricsDataProvider extends React.Component<MetricsDataProviderProps, {}> 
   componentWillMount() {
     // Refresh nodes status query when mounting.
     this.refreshMetricsIfStale(this.props);
+    this.props.refreshNodes();
   }
 
   componentWillReceiveProps(props: MetricsDataProviderProps) {
@@ -209,16 +227,27 @@ let timeInfoSelector = createSelector(
     };
   });
 
+let nodeStatuses = (state: AdminUIState): NodeStatus[] => state.cachedData.nodes.data;
+
+let nodeIds = createSelector(
+  nodeStatuses,
+  (ns: NodeStatus[]) => {
+    return _.map(ns, (n) => n.desc.node_id);
+  }
+);
+
 // Connect the MetricsDataProvider class to redux state.
 let metricsDataProviderConnected = connect(
   (state: AdminUIState, ownProps: MetricsDataProviderExplicitProps) => {
     return {
       metrics: state.metrics.queries[ownProps.id],
       timeInfo: timeInfoSelector(state),
+      nodeIds: nodeIds(state),
     };
   },
   {
-    queryMetrics: queryMetrics,
+    queryMetrics,
+    refreshNodes,
   }
 )(MetricsDataProvider);
 

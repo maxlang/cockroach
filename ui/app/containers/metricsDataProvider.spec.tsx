@@ -19,8 +19,9 @@ type TSRequestMessage = Proto2TypeScript.cockroach.ts.tspb.TimeSeriesQueryReques
 function makeDataProvider(id: string,
                           metrics: MetricsQuery,
                           timeInfo: QueryTimeInfo,
-                          queryMetrics: (id: string, request: TSRequestMessage) => any) {
-  return shallow(<MetricsDataProvider id={id} metrics={metrics} timeInfo={timeInfo} queryMetrics={queryMetrics}>
+                          queryMetrics: (id: string, request: TSRequestMessage) => any,
+                          refreshNodes: () => any = () => { }) {
+  return shallow(<MetricsDataProvider id={id} metrics={metrics} timeInfo={timeInfo} queryMetrics={queryMetrics} refreshNodes={refreshNodes} nodeIds={[]} perNode={false}>
     <TextGraph>
       <Axis>
         <Metric name="test.metric.1" />
@@ -181,7 +182,10 @@ describe("<MetricsDataProvider>", function() {
           <MetricsDataProvider id="id"
                                metrics={null}
                                timeInfo={timespan1}
-                               queryMetrics={spy}>
+                               queryMetrics={spy}
+                               refreshNodes={(() => { }) as any }
+                               perNode={false}
+                               nodeIds={[]}>
             <TextGraph>
               <Axis>
                 <Metric name="test.metrics.1" />

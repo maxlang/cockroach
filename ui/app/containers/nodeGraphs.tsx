@@ -17,7 +17,6 @@ import { AdminUIState } from "../redux/state";
 import { refreshNodes } from "../redux/apiReducers";
 import { NodeStatus, MetricConstants, BytesUsed } from  "../util/proto";
 
-
 interface NodeGraphsProps {
   clusterInfo: {
     totalNodes: number;
@@ -55,17 +54,12 @@ class NodeGraphs extends React.Component<NodeGraphsProps & IInjectedProps, {}> {
           </div>
         </div>
 
-        <div className="events-summary visualization-wrapper">
-          <h3>Events</h3>
-        </div>
+        <Link to="/cluster/events"><div className="events-summary visualization-wrapper">
+          <img src="assets/Screen Shot 2016-10-11 at 11.17.47 AM.png" style={{width:"298px"}} />
+        </div></Link>
       </div>
       <div className="charts">
         <GraphGroup groupId="node.activity" title="Activity" shownDefault={true}>
-          <LineGraph title="SQL Connections" sources={sources} tooltip={`The total number of active SQL connections ${specifier}.`}>
-              <Axis format={ d3.format(".1f") }>
-                <Metric name="cr.node.sql.conns" title="Client Connections" />
-              </Axis>
-            </LineGraph>
 
             <LineGraph title="SQL Traffic" sources={sources} tooltip={`The average amount of SQL client network traffic in bytes per second ${specifier}.`}>
               <Axis format={ Bytes }>
@@ -108,6 +102,12 @@ class NodeGraphs extends React.Component<NodeGraphsProps & IInjectedProps, {}> {
               <Axis label="Milliseconds" format={ (n) => d3.format(".1f")(NanoToMilli(n)) }>
                 <Metric name="cr.node.sys.gc.pause.ns" title={`${sources ? "" : "Avg "}Time`} aggregateAvg nonNegativeRate />
                 { node ? null : <Metric name="cr.node.sys.gc.pause.ns" title="Max Time" aggregateMax nonNegativeRate /> }
+              </Axis>
+          </LineGraph>
+
+                    <LineGraph title="SQL Connections" sources={sources} tooltip={`The total number of active SQL connections ${specifier}.`}>
+              <Axis format={ d3.format(".1f") }>
+                <Metric name="cr.node.sql.conns" title="Client Connections" />
               </Axis>
             </LineGraph>
 

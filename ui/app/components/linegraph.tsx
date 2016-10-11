@@ -154,11 +154,28 @@ export class LineGraph extends React.Component<LineGraphProps, {}> {
     this.drawChart();
   }
 
+  mouseEnter(e: React.MouseEvent) {
+    document.body.className += " show-graph-lines";
+  }
+
+  mouseMove(e: React.MouseEvent) {
+    let lines = document.getElementsByClassName("graph-line");
+    _.each(lines, (line: HTMLElement) => {
+      line.style.left = (e.clientX - CHART_MARGINS.left - 40) + "px";
+    });
+  }
+
+  mouseLeave(e: React.MouseEvent) {
+    console.log("leaving");
+    document.body.className = document.body.className.replace(" show-graph-lines", "");
+  }
+
   render() {
     let { title, subtitle, tooltip } = this.props;
     return <Visualization title={title} subtitle={subtitle} tooltip={tooltip}>
       <div className="linegraph">
-        <svg className="graph" ref={(svg) => this.svgEl = svg}/>
+        <div className="graph-line"></div>
+        <svg className="graph" ref={(svg) => this.svgEl = svg} onMouseMove={this.mouseMove} onMouseEnter={this.mouseEnter} onMouseLeave={this.mouseLeave}  />
       </div>
     </Visualization>;
   }

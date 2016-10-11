@@ -53,7 +53,7 @@ class GraphGroup extends React.Component<GraphGroupProps, {}> {
         (React.Children.map(this.props.children, (child, idx) => {
           let key = this.props.groupId + idx.toString();
           return <div style={{ float: "left" }} key={key} className={this.props.childClassName || ""}>
-            <MetricsDataProvider id={key}>
+            <MetricsDataProvider id={key} perNode={false}>
               {child}
             </MetricsDataProvider>
           </div>;
