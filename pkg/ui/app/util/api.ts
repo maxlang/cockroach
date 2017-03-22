@@ -52,6 +52,9 @@ export type TableStatsResponseMessage = Proto2TypeScript.cockroach.server.server
 export type LogsRequestMessage = Proto2TypeScript.cockroach.server.serverpb.LogsRequestMessage;
 export type LogEntriesResponseMessage = Proto2TypeScript.cockroach.server.serverpb.LogEntriesResponseMessage;
 
+export type GossipRequestMessage = Proto2TypeScript.cockroach.server.serverpb.GossipRequestMessage;
+export type GossipResponseMessage = {infos: {[key: string]: any}};
+
 // API constants
 
 export const API_PREFIX = "_admin/v1";
@@ -97,7 +100,7 @@ function timeoutFetch<TResponse, TResponseMessage, TResponseMessageBuilder exten
     fetch(url, {
       method: req ? "POST" : "GET",
       headers: {
-        "Accept": "application/x-protobuf",
+        "Accept": builder ? "application/x-protobuf" : "application/json",
         "Content-Type": "application/x-protobuf",
         "Grpc-Timeout": timeout ? timeout.asMilliseconds() + "m" : undefined,
       },
@@ -109,7 +112,7 @@ function timeoutFetch<TResponse, TResponseMessage, TResponseMessageBuilder exten
     if (!res.ok) {
       throw Error(res.statusText);
     }
-    return res.arrayBuffer().then((buffer) => builder.decode(buffer));
+    return builder ? res.arrayBuffer().then((buffer) => builder.decode(buffer)) : res.json() as any as Promise<TResponseMessage>;
   });
 }
 
@@ -192,4 +195,8 @@ export function getTableStats(req: TableStatsRequestMessage, timeout?: moment.Du
 // getLogs gets the logs for a specific node
 export function getLogs(req: LogsRequestMessage, timeout?: moment.Duration): Promise<LogEntriesResponseMessage> {
   return timeoutFetch(serverpb.LogEntriesResponse, `${STATUS_PREFIX}/logs/${req.node_id}`, null, timeout);
+}
+
+export function getGossip(req: GossipRequestMessage, timeout?: moment.Duration): Promise<GossipResponseMessage> {
+  return timeoutFetch(null, `${STATUS_PREFIX}/gossip/${req.node_id}`, null, timeout);
 }

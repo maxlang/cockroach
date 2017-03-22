@@ -83,6 +83,7 @@ import NodesOverview from "./containers/nodesOverview";
 import NodeOverview from "./containers/nodeOverview";
 import NodeGraphs from "./containers/nodeGraphs";
 import NodeLogs from "./containers/nodeLogs";
+import Gossip from "./containers/gossip";
 import { EventPage } from "./containers/events";
 import Raft from "./containers/raft";
 import RaftRanges from "./containers/raftRanges";
@@ -119,7 +120,8 @@ ReactDOM.render(
           <Route path={ `:${nodeIDAttr}` } component={ Node }>
             <IndexRoute component={ NodeOverview } />
             <Route path="graphs" component={ NodeGraphs } />
-            <Route path="logs" component={ NodeLogs } />
+            <Route path="logs" component={NodeLogs} />
+            <Route path="gossip" component={Gossip} />
           </Route>
         </Route>
         <Route path="databases">
@@ -133,7 +135,7 @@ ReactDOM.render(
           <IndexRedirect to="ranges" />
           <Route path="ranges" component={ RaftRanges } />
         </Route>
-        <Route path="clusterviz" component={ ClusterViz } />
+        <Route path="clusterviz" component={ClusterViz} />
       </Route>
     </Router>
   </Provider>,
